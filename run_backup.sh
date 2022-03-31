@@ -222,8 +222,8 @@ copy_system() {
     system_root="$(sudo lsblk -oMOUNTPOINT,PKNAME -rn | awk '$1 ~ /^\/$/ { print $2 }')"
     system_size="$(sudo blockdev --getsize64 /dev/"${system_root}")"
     free_space="$(df "${backup_destination}"| tail -1 | awk '{print $2-$3}')"
-    [ $(("${system_size}" * 11 / 10240)) -gt "${free_space}" ] && status 1 "Not enough free space on destination device"
-    [ $(("${system_size}" * 15 / 10240)) -gt "${free_space}" ] && status 2 "There may not be enough free space on destination device"
+    [ $(("${system_size}" * 11 / 10240)) -gt "${free_space}" ] && _status 1 "Not enough free space on destination device"
+    [ $(("${system_size}" * 15 / 10240)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
     echo
     _status 0 "Copying system - $((system_size / 1073741824))G to back up"
     sudo dd bs=1M if="/dev/${system_root}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct || status 1 "Failed to copy system to backup destination"
@@ -236,7 +236,7 @@ fresh_boot() {
     _status 0 "Adding files for fresh boot"
     mnt_dir=$(mktemp -d)
     mkdir -p "$mnt_dir" || _status 1 "Failed to create temporary mount directory"
-    loop_mnt=$(losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
+    loop_mnt=$(sudo losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
     mount "${loop_mnt}p1" "$mnt_dir" || _status 1 "Failed to mount copied system image"
     vnstat_current || _status 1 "Failed to get current vnStat version"
     case "${vnstat_version}" in
