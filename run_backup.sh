@@ -214,7 +214,7 @@ check_tools() {
 clean_repository() {
     echo
     _status 0 "Cleaning out the local repository"
-    sudo apt clean || _status 2 "Failed to clean the local repository"
+    sudo apt-get clean || _status 2 "Failed to clean the local repository"
     _status 0 "Cleaned out the local repository"
 }
 
