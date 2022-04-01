@@ -337,7 +337,7 @@ zero_free() {
     sudo mount "${loop_mnt}${part_n}" "$mnt_dir" || _status 1 "Failed to mount copied system image"
     m_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BM | tail -1 | awk '{print $2-$3}')"M"
     _status 0 "There is ${m_to_clean} to clean for ${part_n}"
-    dd_zero="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" && \
+    dd_zero="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
     _status 0 "Free space zeroed $( echo "${dd_zero}" | tail -1 )"
     sync
     sync
