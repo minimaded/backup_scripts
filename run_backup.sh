@@ -221,7 +221,7 @@ clean_repository() {
 copy_system() {
     system_root="$(sudo lsblk -oMOUNTPOINT,PKNAME -rn | awk '$1 ~ /^\/$/ { print $2 }')"
     system_size="$(sudo blockdev --getsize64 /dev/"${system_root}")"
-    free_space="$(df "${backup_destination}"| tail -1 | awk '{print $2-$3}')"
+    free_space="$(sudo df "${backup_destination}"| tail -1 | awk '{print $2-$3}')"
     [ $(("${system_size}" * 11 / 10240)) -gt "${free_space}" ] && _status 1 "Not enough free space on destination device"
     [ $(("${system_size}" * 15 / 10240)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
     echo
@@ -237,7 +237,7 @@ fresh_boot() {
     mnt_dir=$(mktemp -d)
     mkdir -p "$mnt_dir" || _status 1 "Failed to create temporary mount directory"
     loop_mnt=$(sudo losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
-    mount "${loop_mnt}p1" "$mnt_dir" || _status 1 "Failed to mount copied system image"
+    sudo mount "${loop_mnt}p1" "$mnt_dir" || _status 1 "Failed to mount copied system image"
     vnstat_current || _status 1 "Failed to get current vnStat version"
     case "${vnstat_version}" in
     
@@ -295,13 +295,13 @@ EOF
     sudo sed  -i "1 s|$| systemd\.run_success_action=reboot|" "${mnt_dir}/cmdline.txt" || _status 1 "Failed to add systemd.run_success_action=reboot to cmdline.txt"
     sudo sed  -i "1 s|$| systemd\.unit=kernel-command-line\.target|" "${mnt_dir}/cmdline.txt" || _status 1 "Failed to add systemd.unit=kernel-command-line.target to cmdline.txt"
     
-    umount "$mnt_dir" || _status 1 "Failed to unmount copied system image"
-    losetup -D || _status 1 "Failed to detach loop device"
+    sudo umount "$mnt_dir" || _status 1 "Failed to unmount copied system image"
+    sudo losetup -D || _status 1 "Failed to detach loop device"
     _status 0 "Files for fresh boot added"
 }
 
 vnstat_current() {
-    vnstat_version="$(dpkg-query -l | grep "vnstat" | tr -s " " | cut -d " " -f 3)" || _status 1 "Failed to get vnStat version"
+    vnstat_version="$(sudo dpkg-query -l | grep "vnstat" | tr -s " " | cut -d " " -f 3)" || _status 1 "Failed to get vnStat version"
     case "${vnstat_version}" in
         "" )
             _status 0 "vnStat not installed..."
@@ -333,9 +333,9 @@ zero_free() {
     part_n=$1
     mnt_dir=$(mktemp -d)
     mkdir -p "$mnt_dir" || _status 1 "Failed to create temporary mount directory"
-    loop_mnt=$(losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
-    mount "${loop_mnt}${part_n}" "$mnt_dir" || _status 1 "Failed to mount copied system image"
-    m_to_clean=$(df -k "${loop_mnt}${part_n}" -BM | tail -1 | awk '{print $2-$3}')"M"
+    loop_mnt=$(sudo losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
+    sudo mount "${loop_mnt}${part_n}" "$mnt_dir" || _status 1 "Failed to mount copied system image"
+    m_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BM | tail -1 | awk '{print $2-$3}')"M"
     _status 0 "There is ${m_to_clean} to clean for ${part_n}"
     sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me" status=progress conv=fsync iflag=nocache oflag=direct
     sync
@@ -344,8 +344,8 @@ zero_free() {
     sudo rm -f -v "${mnt_dir}/delete_me" || _status 1 "Failed to delete dummy file"
     sync
     sync
-    umount "$mnt_dir" || _status 1 "Failed to unmount copied system image"
-    losetup -D || _status 1 "Failed to detach loop device"
+    sudo umount "$mnt_dir" || _status 1 "Failed to unmount copied system image"
+    sudo losetup -D || _status 1 "Failed to detach loop device"
     _status 0 "Zeroed free space on ${part_n}"
 }
 
