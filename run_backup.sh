@@ -318,7 +318,7 @@ vnstat_current() {
 pi_shrink() {
     [[ "${do_shrink}" != "shrink" ]] && return
     echo
-    echo "Downloading PiShrink Script"
+    _status 0 "Downloading PiShrink Script"
     wget -qO - "https://raw.githubusercontent.com/minimaded/backup_scripts/main/pishrink.sh" > "/tmp/pishrink.sh" || _status 1 "Failed to get PiShrink script"
     sudo chmod +x "/tmp/pishrink.sh"
     echo
