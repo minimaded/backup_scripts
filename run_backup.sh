@@ -226,8 +226,8 @@ copy_system() {
     [ $(("${system_size}" * 15 / 10240)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
     echo
     _status 0 "Copying system - $((system_size / 1073741824))G to back up"
-    dd_copy="$(sudo dd bs=1M if="/dev/${system_root}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct)" || status 1 "Failed to copy system to backup destination"
-    _status 0 "System copied ${dd_copy}"
+    dd_copy="$(sudo dd bs=1M if="/dev/${system_root}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || status 1 "Failed to copy system to backup destination"
+    _status 0 "System copied $( echo "${dd_copy}" | tail -1 )"
 }
 
 fresh_boot() {
@@ -337,7 +337,8 @@ zero_free() {
     sudo mount "${loop_mnt}${part_n}" "$mnt_dir" || _status 1 "Failed to mount copied system image"
     m_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BM | tail -1 | awk '{print $2-$3}')"M"
     _status 0 "There is ${m_to_clean} to clean for ${part_n}"
-    dd_copy="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me" status=progress conv=fsync iflag=nocache oflag=direct)"
+    dd_zero="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))"
+    _status 0 "Free space zeroed $( echo "${dd_zero}" | tail -1 )"
     sync
     sync
     _status 0 "Delete dummy file"
