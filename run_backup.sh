@@ -350,7 +350,7 @@ zero_free() {
     _status 0 "Zeroed free space on ${part_n}"
 }
 
-comp_zip() {
+compress_zip() {
     echo
     _status 0 "Compressing backup"
     sudo gzip -v "${backup_saveas}.img" || _status 1 "Failed to compress backup"
