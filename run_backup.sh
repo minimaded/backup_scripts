@@ -84,7 +84,7 @@ _sleep() {
 log_file() {
     while read -r line; do
         echo "${line}"
-        sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' <<< "${line}" > /dev/null | sudo tee -a "/mnt/ExtSSD/BackUp/test.log"| sudo tee -a "${backup_saveas}.log"
+        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' > /dev/null | sudo tee -a "/mnt/ExtSSD/BackUp/test.log"| sudo tee -a "${backup_saveas}.log"
     done
 }
 
