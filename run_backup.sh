@@ -70,9 +70,9 @@ _sleep() {
 }
 
 log_file() {
-    while read -r log_line; do
-        echo "test this ${log_line} that"
-        echo "${log_line}" | sed -i 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log"
+    while read -r line; do
+        echo "test this ${line} that"
+        echo "${line}" | sed -i 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log"
     done
 }
 
@@ -367,6 +367,6 @@ compress_zip() {
 _colors
 script_path="$( readlink -f "$0" )"
 user_name="$( sudo ls "/home" | tail -n 1 )"
-_status 0 "Username is ${user_name}" > log_file
+_status 0 "Username is ${user_name}" | log_file
 parse_params "$@"
 #do_all | tee -a | log_file
