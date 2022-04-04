@@ -367,5 +367,5 @@ _colors
 script_path="$( readlink -f "$0" )"
 user_name="$( sudo ls "/home" | tail -n 1 )"
 parse_params "$@"
-_status 0 "Username is ${user_name}" | tee -a | log_file
+_status 0 "Username is ${user_name}" > log_file
 #do_all | tee -a | log_file
