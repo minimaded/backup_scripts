@@ -369,4 +369,4 @@ script_path="$( readlink -f "$0" )"
 user_name="$( sudo ls "/home" | tail -n 1 )"
 _status 0 "Username is ${user_name}" | tee -a | log_file
 parse_params "$@"
-do_all | tee -a | log_file
+#do_all | tee -a | log_file
