@@ -69,6 +69,12 @@ _sleep() {
     echo
 }
 
+log_file() {
+    while read -r line; do
+        sed -i 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' <<< "${line}" | sudo tee -a "${backup_saveas}.log"
+    done
+}
+
 _reboot() {
     count=0
     total=$1
@@ -85,7 +91,7 @@ _reboot() {
 relog() {
     while read -r line; do
         timestamp="$( date +"%Y-%m-%d %H:%M:%S" )"
-        echo "[$timestamp] $line"
+        echo "[${timestamp}] ${line}"
     done
 }
 
@@ -362,4 +368,4 @@ script_path="$( readlink -f "$0" )"
 user_name="$( sudo ls "/home" | tail -n 1 )"
 _status 0 "Username is ${user_name}"
 parse_params "$@"
-do_all | sudo tee -a "${backup_saveas}.log"
+do_all | log_file
