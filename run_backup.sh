@@ -35,25 +35,37 @@ _notdone() {
 }
 
 _colors() {
-    ansi_red="\033[0;31m"
-    ansi_green="\033[0;32m"
-    ansi_yellow="\033[0;33m"
-    ansi_raspberry="\033[0;35m"
-    ansi_error="\033[1;37;41m"
-    ansi_reset="\033[m"
+    if [[ -t 1 ]]; then
+        ncolors=$(tput colors)
+        if [[ -n $ncolors && $ncolors -ge 8 ]]; then
+            text_red="$(tput setaf 1)"
+            text_green="$(tput setaf 2)"
+            text_yellow="$(tput setaf 3)"
+            text_magenta="$(tput setaf 5)"
+            text_error="$(tput setaf 7)$(tput setab 1)$(tput bold)"
+            text_reset="$(tput sgr0)"
+        else
+            text_red=""
+            text_green=""
+            text_yellow=""
+            text_magenta=""
+            text_error=""
+            text_reset=""
+        fi
+    fi
 }
 
 _status() {
     case $1 in
         0)
-        echo -e "[$ansi_green \u2713 ok $ansi_reset] $ansi_green $2 $ansi_reset"  | relog
+        echo -e "[$text_green \u2713 ok $text_reset] $text_green $2 $text_reset"  | relog
         ;;
         1)
-        echo -e "[$ansi_red \u2718 error $ansi_reset] $ansi_error $2 $ansi_reset" | relog
+        echo -e "[$text_red \u2718 error $text_reset] $text_error $2 $text_reset" | relog
         _notdone
         ;;
         2)
-        echo -e "[$ansi_yellow \u26a0 warning $ansi_reset] $ansi_yellow $2 $ansi_reset" | relog
+        echo -e "[$text_yellow \u26a0 warning $text_reset] $text_yellow $2 $text_reset" | relog
         ;;
     esac
 }
