@@ -72,7 +72,7 @@ _sleep() {
 log_file() {
     while read -r line; do
         echo "${line}"
-        sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' <<< "${line}" | sudo tee -a "${backup_saveas}.log"
+        sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' <<< "${line}" > /dev/null | sudo tee -a "/mnt/ExtSSD/BackUp/test.log"| sudo tee -a "${backup_saveas}.log"
     done
 }
 
@@ -369,4 +369,4 @@ script_path="$( readlink -f "$0" )"
 user_name="$( sudo ls "/home" | tail -n 1 )"
 parse_params "$@"
 _status 0 "Username is ${user_name}" | log_file
-#do_all | tee -a | log_file
+do_all | log_file
