@@ -71,8 +71,7 @@ _sleep() {
 
 log_file() {
     while read -r line; do
-        echo "test this ${line} that"
-        echo "${line}" | sed -i 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log"
+        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log"
     done
 }
 
