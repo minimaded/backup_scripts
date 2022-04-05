@@ -43,6 +43,7 @@ _colors() {
             text_yellow="$(tput setaf 3)"
             text_blue="$(tput setaf 4)"
             text_magenta="$(tput setaf 5)"
+            text_cyan="$(tput setaf 6)"
             text_error="$(tput setaf 7)$(tput setab 1)$(tput bold)"
             text_reset="$(tput sgr0)"
         else
@@ -51,6 +52,7 @@ _colors() {
             text_yellow=""
             text_blue=""
             text_magenta=""
+            text_cyan=""
             text_error=""
             text_reset=""
         fi
@@ -70,7 +72,7 @@ _status() {
             echo -e "[$text_yellow""Warning""$text_reset] $text_yellow $2 $text_reset" | relog
         ;;
         3)
-            echo -e "[$text_blue""Performing""$text_reset] $text_blue $2 $text_reset"  | relog
+            echo -e "[$text_cyan""Performing""$text_reset] $text_cyan $2 $text_reset"  | relog
         ;;
     esac
 }
