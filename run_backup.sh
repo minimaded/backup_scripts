@@ -11,6 +11,7 @@ do_all() {
     pi_shrink
     zero_free "p1"
     zero_free "p2"
+    pi_shrink
     compress_zip
     _done
 }
@@ -358,8 +359,8 @@ zero_free() {
     sudo mount "${loop_mnt}${part_n}" "$mnt_dir" || _status 1 "Failed to mount copied system image"
     for i in {1..2}; do
         if [[ "${i}" -eq 1 ]]; then
-            pass_l="course"
-            pass_u="Course"
+            pass_l="coarse"
+            pass_u="Coarse"
         elif [[ "${i}" -eq 2 ]]; then
             pass_l="fine"
             pass_u="Fine"
