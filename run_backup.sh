@@ -224,15 +224,11 @@ check_tools() {
             echo "${command} is required, press \"y\" to install"
             read -p "" -n 1 -r
             echo
-            if [[ $REPLY =~ ^[Yy]$ ]]
-                then
-                    echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
                     sudo apt-get install "${command}"
-                else
-                    echo
+            else
                     _status 1 "${command} is required"
-                fi
-                echo
+            fi
         fi
     done
     _status 0 "All required tools installed"
@@ -248,9 +244,9 @@ copy_system() {
     system_root="$(sudo lsblk -oMOUNTPOINT,PKNAME -rn | awk '$1 ~ /^\/$/ { print $2 }')"
     system_size="$(sudo blockdev --getsize64 /dev/"${system_root}")"
     free_space="$(sudo df "${backup_destination}"| tail -1 | awk '{print $2-$3}')"
-    [ $(("${system_size}" * 11 / 10240)) -gt "${free_space}" ] && _status 1 "Not enough free space on destination device"
-    [ $(("${system_size}" * 15 / 10240)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
-    _status 3 "Copying system - $((system_size / 1073741824))G to back up"
+    [ $(("${system_size}" * 11 / 10000)) -gt "${free_space}" ] && _status 1 "Not enough free space on destination device"
+    [ $(("${system_size}" * 15 / 10000)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
+    _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${system_size}/1000000000" | bc -l)")GB to back up"
     dd_copy="$(sudo dd bs=1M if="/dev/${system_root}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || status 1 "Failed to copy system to backup destination"
     _status 0 "System copied, $( echo "${dd_copy}" | tail -1 )"
 }
@@ -356,9 +352,15 @@ zero_free() {
     mkdir -p "$mnt_dir" || _status 1 "Failed to create temporary mount directory"
     loop_mnt=$(sudo losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
     sudo mount "${loop_mnt}${part_n}" "$mnt_dir" || _status 1 "Failed to mount copied system image"
-    m_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BM | tail -1 | awk '{print $2-$3}')"M"
-    _status 3 "There is ${m_to_clean} to clean for ${part_n}"
-    dd_zero="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
+    k_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BK | tail -1 | awk '{print $2-$3}')
+    if [[ "${k_to_clean}" -lt 1000 ]]; then
+        _status 3 "There is ${k_to_clean}KB to clean for ${part_n}"
+    elif [[ "${k_to_clean}" -lt 1000000 ]]; then
+        _status 3 "There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000" | bc -l)")MB to clean for ${part_n}"
+    else
+        _status 3 "There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000000" | bc -l)")gB to clean for ${part_n}"
+    fi
+    dd_zero="$(sudo dd bs=1K if=/dev/zero of="${mnt_dir}/delete_me" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
     _status 0 "Free space zeroed $( echo "${dd_zero}" | tail -1 )"
     sync
     sync
