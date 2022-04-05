@@ -11,7 +11,6 @@ do_all() {
     pi_shrink
     zero_free "p1"
     zero_free "p2"
-    pi_shrink
     compress_zip
     _done
 }
