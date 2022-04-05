@@ -356,20 +356,33 @@ zero_free() {
     mkdir -p "$mnt_dir" || _status 1 "Failed to create temporary mount directory"
     loop_mnt=$(sudo losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
     sudo mount "${loop_mnt}${part_n}" "$mnt_dir" || _status 1 "Failed to mount copied system image"
-    k_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BK | tail -1 | awk '{print $2-$3}')
+    k_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BKB | tail -1 | awk '{print $2-$3}')
     if [[ "${k_to_clean}" -lt 1000 ]]; then
-        _status 3 "There is ${k_to_clean}KB to clean for ${part_n}"
+        _status 3 "Corse - There is ${k_to_clean}KB to clean for ${part_n}"
     elif [[ "${k_to_clean}" -lt 1000000 ]]; then
-        _status 3 "There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000" | bc -l)")MB to clean for ${part_n}"
+        _status 3 "Corse - There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000" | bc -l)")MB to clean for ${part_n}"
     else
-        _status 3 "There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000000" | bc -l)")gB to clean for ${part_n}"
+        _status 3 "Corse - There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000000" | bc -l)")GB to clean for ${part_n}"
     fi
-    dd_zero="$(sudo dd bs=1K if=/dev/zero of="${mnt_dir}/delete_me" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
-    _status 0 "Free space zeroed $( echo "${dd_zero}" | tail -1 )"
+    dd_zero_course="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me_corse" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
+    _status 0 "Free space zeroed $( echo "${dd_zero_course}" | tail -1 )"
     sync
     sync
-    _status 3 "Deleting dummy file"
-    sudo rm -f -v "${mnt_dir}/delete_me" || _status 1 "Failed to delete dummy file"
+    k_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BKB | tail -1 | awk '{print $2-$3}')
+    if [[ "${k_to_clean}" -lt 1000 ]]; then
+        _status 3 "Fine - There is ${k_to_clean}KB to clean for ${part_n}"
+    elif [[ "${k_to_clean}" -lt 1000000 ]]; then
+        _status 3 "Fine - There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000" | bc -l)")MB to clean for ${part_n}"
+    else
+        _status 3 "Fine - There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000000" | bc -l)")GB to clean for ${part_n}"
+    fi
+    dd_zero_fine="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me_fine" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
+    _status 0 "Free space zeroed $( echo "${dd_zero_fine}" | tail -1 )"
+    sync
+    sync
+    _status 3 "Deleting dummy files"
+    sudo rm -f -v "${mnt_dir}/delete_me_corse" || _status 1 "Failed to delete corse dummy file"
+    sudo rm -f -v "${mnt_dir}/delete_me_fine" || _status 1 "Failed to delete fine dummy file"
     sync
     sync
     sudo umount "$mnt_dir" || _status 1 "Failed to un-mount copied system image"
