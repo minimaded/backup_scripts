@@ -376,7 +376,7 @@ zero_free() {
     else
         _status 3 "Fine - There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000000" | bc -l)")GB to clean for ${part_n}"
     fi
-    dd_zero_fine="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me_fine" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
+    dd_zero_fine="$(sudo dd bs=1K if=/dev/zero of="${mnt_dir}/delete_me_fine" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
     _status 0 "Free space zeroed $( echo "${dd_zero_fine}" | tail -1 )"
     sync
     sync
