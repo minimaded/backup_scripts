@@ -246,7 +246,11 @@ copy_system() {
     free_space="$(sudo df "${backup_destination}"| tail -1 | awk '{print $2-$3}')"
     [ $(("${system_size}" * 11 / 10000)) -gt "${free_space}" ] && _status 1 "Not enough free space on destination device"
     [ $(("${system_size}" * 15 / 10000)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
-    _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${system_size}/1000000000" | bc -l)")GB to back up"
+    if [[ "${system_size}" -lt 1000000 ]]; then
+        _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${system_size}/1000000" | bc -l)")MB to back up"
+    else
+        _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${system_size}/1000000000" | bc -l)")GB to back up"
+    fi
     dd_copy="$(sudo dd bs=1M if="/dev/${system_root}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || status 1 "Failed to copy system to backup destination"
     _status 0 "System copied, $( echo "${dd_copy}" | tail -1 )"
 }
