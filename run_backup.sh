@@ -16,11 +16,11 @@ do_all() {
 }
 
 _done() {
-    _status 0 "Backup done"
-    warnings="$( grep "warning" "${backup_saveas}.log" )"
+    _status 0 "Backup completed"
+    warnings="$( grep "Warning" "${backup_saveas}.log" )"
     echo
     if [ -n "${warnings}" ] ; then
-        echo "The following warnings occured..."
+        echo "The following warnings occurred..."
         echo
         echo "${warnings}"
     fi
@@ -36,11 +36,12 @@ _notdone() {
 
 _colors() {
     if [[ -t 1 ]]; then
-        ncolors=$(tput colors)
-        if [[ -n $ncolors && $ncolors -ge 8 ]]; then
+        ncolors="$(tput colors)"
+        if [[ -n "${ncolors}" && "${ncolors}" -ge 8 ]]; then
             text_red="$(tput setaf 1)"
             text_green="$(tput setaf 2)"
             text_yellow="$(tput setaf 3)"
+            text_blue="$(tput setaf 4)"
             text_magenta="$(tput setaf 5)"
             text_error="$(tput setaf 7)$(tput setab 1)$(tput bold)"
             text_reset="$(tput sgr0)"
@@ -48,6 +49,7 @@ _colors() {
             text_red=""
             text_green=""
             text_yellow=""
+            text_blue=""
             text_magenta=""
             text_error=""
             text_reset=""
@@ -58,14 +60,17 @@ _colors() {
 _status() {
     case $1 in
         0)
-        echo -e "[$text_green \u2713 ok $text_reset] $text_green $2 $text_reset"  | relog
+            echo -e "[$text_green""Success""$text_reset] $text_green $2 $text_reset"  | relog
         ;;
         1)
-        echo -e "[$text_red \u2718 error $text_reset] $text_error $2 $text_reset" | relog
+            echo -e "[$text_red""Error""$text_reset] $text_error $2 $text_reset" | relog
         _notdone
         ;;
         2)
-        echo -e "[$text_yellow \u26a0 warning $text_reset] $text_yellow $2 $text_reset" | relog
+            echo -e "[$text_yellow""Warning""$text_reset] $text_yellow $2 $text_reset" | relog
+        ;;
+        3)
+            echo -e "[$text_blue""Performing""$text_reset] $text_blue $2 $text_reset"  | relog
         ;;
     esac
 }
@@ -108,23 +113,23 @@ relog() {
 }
 
 internet_check() {
+    _status 3 "Checking for an internet connection"
     for i in {1..60}; do
         if ping -c1 www.google.com &>/dev/null ; then
            _status 0 "Connected to the internet"
             break
         else
-            echo "Waiting for an internet connection..."
+            _status 2 "Waiting for an internet connection..."
             sleep 1
         fi
         if [ "${i}" -gt 59 ] ; then
-           _status 2 "Not connected to the internet, waiting..."
-            echo
            _status 1 "Unable to connect to the internet"
         fi
     done
 }
 
 parse_params() {
+    _status 3 "Parsing parameters"
     backup_destination=""
     backup_name=""
     backup_saveas=""
@@ -141,7 +146,6 @@ parse_params() {
                         if [[ "$(echo "${backup_mount}" | tail -n 1)" =~ "root" ]]; then
                             _status 1 "Backup destination is on root file system"
                         else
-                            echo "${backup_destination}"
                             [ -d "${backup_destination}/BackUp" ] || ( sudo -u "${user_name}" mkdir "${backup_destination}/BackUp" || _status 1 "Failed to create backup directory" )
                             shift 2
                         fi
@@ -205,9 +209,11 @@ parse_params() {
     elif [ -z "${backup_name}" ]; then
         _status 1 "No backup name supplied"
     fi
+    _status 0 "Parameters parsed"
 }
 
 check_tools() {
+    _status 3 "Checking for required tools"
     req_tools="parted losetup tune2fs md5sum e2fsck resize2fs"
     for command in $req_tools; do
         command -v "${command}" >/dev/null 2>&1
@@ -227,13 +233,13 @@ check_tools() {
                 echo
         fi
     done
+    _status 0 "All required tools installed"
 }
 
 clean_repository() {
-    echo
-    _status 0 "Cleaning out the local repository"
+    _status 3 "Cleaning out the local repository"
     sudo apt-get clean || _status 2 "Failed to clean the local repository"
-    _status 0 "Cleaned out the local repository"
+    _status 0 "Local repository cleaned"
 }
 
 copy_system() {
@@ -242,16 +248,14 @@ copy_system() {
     free_space="$(sudo df "${backup_destination}"| tail -1 | awk '{print $2-$3}')"
     [ $(("${system_size}" * 11 / 10240)) -gt "${free_space}" ] && _status 1 "Not enough free space on destination device"
     [ $(("${system_size}" * 15 / 10240)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
-    echo
-    _status 0 "Copying system - $((system_size / 1073741824))G to back up"
+    _status 3 "Copying system - $((system_size / 1073741824))G to back up"
     dd_copy="$(sudo dd bs=1M if="/dev/${system_root}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || status 1 "Failed to copy system to backup destination"
-    _status 0 "System copied $( echo "${dd_copy}" | tail -1 )"
+    _status 0 "System copied, $( echo "${dd_copy}" | tail -1 )"
 }
 
 fresh_boot() {
     [[ "${do_freshboot}" != "freshboot" ]] && return
-    echo
-    _status 0 "Adding files for fresh boot"
+    _status 3 "Adding files for fresh boot"
     mnt_dir=$(mktemp -d)
     mkdir -p "$mnt_dir" || _status 1 "Failed to create temporary mount directory"
     loop_mnt=$(sudo losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
@@ -322,10 +326,10 @@ vnstat_current() {
     vnstat_version="$(sudo dpkg-query -l | grep "vnstat" | tr -s " " | cut -d " " -f 3)" || _status 1 "Failed to get vnStat version"
     case "${vnstat_version}" in
         "" )
-            _status 0 "vnStat not installed..."
+            _status 3 "vnStat not installed..."
         ;;
         "2.6-3" | "1.18" )
-            _status 0 "vnStat ${vnstat_version} installed..."
+            _status 3 "vnStat ${vnstat_version} installed..."
         ;;
         "*" )
             _status 2 "vnStat ${vnstat_version} not supported..."
@@ -335,42 +339,38 @@ vnstat_current() {
 
 pi_shrink() {
     [[ "${do_shrink}" != "shrink" ]] && return
-    echo
-    _status 0 "Downloading PiShrink Script"
+    _status 3 "Downloading PiShrink script"
     wget -qO - "https://raw.githubusercontent.com/minimaded/backup_scripts/main/pishrink.sh" > "/tmp/pishrink.sh" || _status 1 "Failed to get PiShrink script"
     sudo chmod +x "/tmp/pishrink.sh"
-    echo
-    _status 0 "Shrinking system copy with PiShrink"
+    _status 3 "Shrinking system copy with PiShrink"
     sudo "/tmp/pishrink.sh" -s "${backup_saveas}.img" || _status 1 "Failed to shrink system copy with PiShrink"
     _status 0 "System copy shrunk with PiShrink"
 }
 
 zero_free() {
-    echo
-    _status 0 "Zeroing free space on ${part_n} to improve compression"
     part_n=$1
+    _status 3 "Zeroing free space on ${part_n} to improve compression"
     mnt_dir=$(mktemp -d)
     mkdir -p "$mnt_dir" || _status 1 "Failed to create temporary mount directory"
     loop_mnt=$(sudo losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
     sudo mount "${loop_mnt}${part_n}" "$mnt_dir" || _status 1 "Failed to mount copied system image"
     m_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BM | tail -1 | awk '{print $2-$3}')"M"
-    _status 0 "There is ${m_to_clean} to clean for ${part_n}"
+    _status 3 "There is ${m_to_clean} to clean for ${part_n}"
     dd_zero="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
     _status 0 "Free space zeroed $( echo "${dd_zero}" | tail -1 )"
     sync
     sync
-    _status 0 "Delete dummy file"
+    _status 3 "Deleting dummy file"
     sudo rm -f -v "${mnt_dir}/delete_me" || _status 1 "Failed to delete dummy file"
     sync
     sync
-    sudo umount "$mnt_dir" || _status 1 "Failed to unmount copied system image"
+    sudo umount "$mnt_dir" || _status 1 "Failed to un-mount copied system image"
     sudo losetup -D || _status 1 "Failed to detach loop device"
     _status 0 "Zeroed free space on ${part_n}"
 }
 
 compress_zip() {
-    echo
-    _status 0 "Compressing backup"
+    _status 3 "Compressing backup"
     sudo gzip -v "${backup_saveas}.img" || _status 1 "Failed to compress backup"
     _status 0 "Backup compressed"
 }
