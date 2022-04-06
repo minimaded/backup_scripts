@@ -185,7 +185,11 @@ parse_params() {
             -s)
                 if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
                     do_shrink="$2"
-                    if [[ "${do_shrink}" == "shrink" ]]; then
+                    if [[ "${do_shrink}" == "shrink_only" ]]; then
+                        rm_logs=""
+                        shift 2
+                    elif [[ "${do_shrink}" == "shrink_rm_logs" ]]; then
+                        rm_logs="p"
                         shift 2
                     else
                         _status 1 "Invalid shrink option"
@@ -345,7 +349,7 @@ pi_shrink() {
     wget -qO - "https://raw.githubusercontent.com/minimaded/backup_scripts/main/pishrink.sh" > "/tmp/pishrink.sh" || _status 1 "Failed to get PiShrink script"
     sudo chmod +x "/tmp/pishrink.sh"
     _status 3 "Shrinking system copy with PiShrink"
-    sudo "/tmp/pishrink.sh" -s "${backup_saveas}.img" || _status 1 "Failed to shrink system copy with PiShrink"
+    sudo "/tmp/pishrink.sh" -s"${rm_logs}" "${backup_saveas}.img" || _status 1 "Failed to shrink system copy with PiShrink"
     _status 0 "System copy shrunk with PiShrink"
 }
 
