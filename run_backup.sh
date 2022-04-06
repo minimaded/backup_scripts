@@ -160,6 +160,7 @@ parse_params() {
             -d)
                 if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
                     backup_destination="$2"
+echo "${backup_destination}"
                     backup_mount="$( findmnt -T "${backup_destination}" -o SOURCE )" || _status 1 "Invalid backup destination"
 echo "Destination"
 echo "${backup_mount}"
