@@ -403,6 +403,6 @@ compress_zip() {
 _colors
 script_path="$( readlink -f "$0" )"
 user_name="$( sudo ls "/home" | tail -n 1 )"
-parse_params "$@" | tee /dev/tty | log_file
+parse_params "$@"
 _status 0 "Username is ${user_name}" | tee /dev/tty | log_file
 do_all | tee /dev/tty | log_file
