@@ -365,9 +365,11 @@ zero_free() {
         if [[ "${i}" -eq 1 ]]; then
             pass_l="coarse"
             pass_u="Coarse"
+            dd_bs="1M"
         elif [[ "${i}" -eq 2 ]]; then
             pass_l="fine"
             pass_u="Fine"
+            dd_bs="1K"
         fi
         k_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BKB | tail -1 | awk '{print $2-$3}')
         if [[ "${k_to_clean}" -lt 1000 ]]; then
@@ -377,8 +379,8 @@ zero_free() {
         else
             _status 3 "${pass_u} - There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000000" | bc -l)")GB to clean for ${part_n}"
         fi
-        dd_zero="$(sudo dd bs=1M if=/dev/zero of="${mnt_dir}/delete_me_${pass_l}" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
-        _status 0 "Free space zeroed $( echo "${dd_zero}" | tail -1 )"
+        dd_zero="$(sudo dd bs=${dd_bs} if=/dev/zero of="${mnt_dir}/delete_me_${pass_l}" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
+        _status 0 "Free space zeroed - $( echo "${dd_zero}" | tail -1 )"
         sync
         sync
     done
@@ -401,6 +403,6 @@ compress_zip() {
 _colors
 script_path="$( readlink -f "$0" )"
 user_name="$( sudo ls "/home" | tail -n 1 )"
-parse_params "$@"
+parse_params "$@" | tee /dev/tty | log_file
 _status 0 "Username is ${user_name}" | tee /dev/tty | log_file
 do_all | tee /dev/tty | log_file
