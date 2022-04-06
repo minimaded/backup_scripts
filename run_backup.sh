@@ -139,13 +139,31 @@ parse_params() {
     PARAMS=""
     while (( "$#" )); do
         case "$1" in
+            -r)
+                if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+                    backup_source="$2"
+                    if [[ "${backup_source}" == "root" ]]; then
+                        backup_source="$( sudo lsblk -oMOUNTPOINT,PKNAME -rn | awk '$1 ~ /^\/$/ { print $2 }' )"
+                        shift 2
+                    else
+                        source_mount="$( df --output=source "/dev/${backup_source}" )" || _status 1 "Invalid backup source"
+                        if [[ "$( echo "${source_mount}" | head -n 1 )" == "Filesystem" ]] && [[ "$(echo "${source_mount}" | tail -n 1 )" == "devtmpfs" ]]; then
+                            shift 2
+                        else
+                            _status 1 "Invalid backup source"
+                        fi
+                    fi
+                else
+                    _status 1 "Argument for backup source is missing"
+                fi
+            ;;
             -d)
                 if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
                     backup_destination="$2"
                     backup_mount="$( df --output=source "${backup_destination}" )" || _status 1 "Invalid backup destination"
                     if [[ "$( echo "${backup_mount}" | head -n 1 )" == "Filesystem" ]]; then
-                        if [[ "$(e cho "${backup_mount}" | tail -n 1 )" =~ "root" ]]; then
-                            _status 1 "Backup destination is on root file system"
+                        if [[ "$(echo "${backup_mount}" | tail -n 1 )" == "*${backup_source}*" ]]; then
+                            _status 1 "Backup destination is on source device"
                         else
                             [ -d "${backup_destination}/BackUp" ] || ( sudo -u "${user_name}" mkdir "${backup_destination}/BackUp" || _status 1 "Failed to create backup directory" )
                             shift 2
@@ -167,6 +185,18 @@ parse_params() {
                     fi
                 else
                     _status 1 "Argument for backup name is missing"
+                fi
+            ;;
+            -c)
+                if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+                    do_repoclean="$2"
+                    if [[ "${do_repoclean}" == "repoclean" ]]; then
+                        shift 2
+                    else
+                        _status 1 "Invalid repoclean option"
+                    fi
+                else
+                    _status 1 "Argument for repoclean is missing"
                 fi
             ;;
             -f)
@@ -208,6 +238,11 @@ parse_params() {
             ;;
         esac
     done
+    if [ -n "${backup_source}" ]; then
+        _status 0 "Using /dev/${backup_source} as backup source"
+    else
+        _status 1 "No backup source supplied"
+    fi
     if [ -n "${backup_destination}" ] && [ -n "${backup_name}" ]; then
         backup_saveas="${backup_destination}/BackUp/${backup_name}-$(date '+%Y-%m-%d-%H%M%S')"
         _status 0 "Saving backup to ${backup_saveas}"
@@ -240,23 +275,23 @@ check_tools() {
 }
 
 clean_repository() {
+    [[ "${do_repoclean}" != "repoclean" ]] && return
     _status 3 "Cleaning out the local repository"
     sudo apt-get clean || _status 2 "Failed to clean the local repository"
     _status 0 "Local repository cleaned"
 }
 
 copy_system() {
-    system_root="$( sudo lsblk -oMOUNTPOINT,PKNAME -rn | awk '$1 ~ /^\/$/ { print $2 }' )"
-    system_size="$( sudo blockdev --getsize64 /dev/"${system_root}" )"
+    source_size="$( sudo blockdev --getsize64 /dev/"${backup_source}" )"
     free_space="$( sudo df "${backup_destination}" | tail -1 | awk '{print $2-$3}' )"
-    [ $(("${system_size}" * 11 / 10000)) -gt "${free_space}" ] && _status 1 "Not enough free space on destination device"
-    [ $(("${system_size}" * 15 / 10000)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
-    if [[ "${system_size}" -lt 1000000 ]]; then
-        _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${system_size}/1000000" | bc -l)")MB to back up"
+    [ $(("${source_size}" * 11 / 10000)) -gt "${free_space}" ] && _status 1 "Not enough free space on destination device"
+    [ $(("${source_size}" * 15 / 10000)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
+    if [[ "${source_size}" -lt 1000000 ]]; then
+        _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${source_size}/1000000" | bc -l)")MB to back up"
     else
-        _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${system_size}/1000000000" | bc -l)")GB to back up"
+        _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${source_size}/1000000000" | bc -l)")GB to back up"
     fi
-    dd_copy="$( sudo dd bs=1M if="/dev/${system_root}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2) )" || status 1 "Failed to copy system to backup destination"
+    dd_copy="$( sudo dd bs=1M if="/dev/${backup_source}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2) )" || status 1 "Failed to copy system to backup destination"
     _status 0 "System copied, $( echo "${dd_copy}" | tail -1 )"
 }
 
@@ -385,7 +420,7 @@ zero_free() {
         sync
     done
     _status 3 "Deleting dummy files"
-    sudo rm -f -v "${mnt_dir}/delete_me_coarse" || _status 1 "Failed to delete corse dummy file"
+    sudo rm -f -v "${mnt_dir}/delete_me_coarse" || _status 1 "Failed to delete coarse dummy file"
     sudo rm -f -v "${mnt_dir}/delete_me_fine" || _status 1 "Failed to delete fine dummy file"
     sync
     sync
