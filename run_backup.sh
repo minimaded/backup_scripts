@@ -142,9 +142,9 @@ parse_params() {
             -d)
                 if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
                     backup_destination="$2"
-                    backup_mount="$(df --output=source "${backup_destination}")" || _status 1 "Invalid backup destination"
-                    if [[ "$(echo "${backup_mount}" | head -n 1)" == "Filesystem" ]]; then
-                        if [[ "$(echo "${backup_mount}" | tail -n 1)" =~ "root" ]]; then
+                    backup_mount="$( df --output=source "${backup_destination}" )" || _status 1 "Invalid backup destination"
+                    if [[ "$( echo "${backup_mount}" | head -n 1 )" == "Filesystem" ]]; then
+                        if [[ "$(e cho "${backup_mount}" | tail -n 1 )" =~ "root" ]]; then
                             _status 1 "Backup destination is on root file system"
                         else
                             [ -d "${backup_destination}/BackUp" ] || ( sudo -u "${user_name}" mkdir "${backup_destination}/BackUp" || _status 1 "Failed to create backup directory" )
@@ -246,9 +246,9 @@ clean_repository() {
 }
 
 copy_system() {
-    system_root="$(sudo lsblk -oMOUNTPOINT,PKNAME -rn | awk '$1 ~ /^\/$/ { print $2 }')"
-    system_size="$(sudo blockdev --getsize64 /dev/"${system_root}")"
-    free_space="$(sudo df "${backup_destination}"| tail -1 | awk '{print $2-$3}')"
+    system_root="$( sudo lsblk -oMOUNTPOINT,PKNAME -rn | awk '$1 ~ /^\/$/ { print $2 }' )"
+    system_size="$( sudo blockdev --getsize64 /dev/"${system_root}" )"
+    free_space="$( sudo df "${backup_destination}" | tail -1 | awk '{print $2-$3}' )"
     [ $(("${system_size}" * 11 / 10000)) -gt "${free_space}" ] && _status 1 "Not enough free space on destination device"
     [ $(("${system_size}" * 15 / 10000)) -gt "${free_space}" ] && _status 2 "There may not be enough free space on destination device"
     if [[ "${system_size}" -lt 1000000 ]]; then
@@ -256,17 +256,17 @@ copy_system() {
     else
         _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${system_size}/1000000000" | bc -l)")GB to back up"
     fi
-    dd_copy="$(sudo dd bs=1M if="/dev/${system_root}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || status 1 "Failed to copy system to backup destination"
+    dd_copy="$( sudo dd bs=1M if="/dev/${system_root}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2) )" || status 1 "Failed to copy system to backup destination"
     _status 0 "System copied, $( echo "${dd_copy}" | tail -1 )"
 }
 
 fresh_boot() {
     [[ "${do_freshboot}" != "freshboot" ]] && return
     _status 3 "Adding files for fresh boot"
-    mnt_dir=$(mktemp -d)
-    mkdir -p "$mnt_dir" || _status 1 "Failed to create temporary mount directory"
-    loop_mnt=$(sudo losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
-    sudo mount "${loop_mnt}p1" "$mnt_dir" || _status 1 "Failed to mount copied system image"
+    mnt_dir="$( mktemp -d )"
+    mkdir -p "${mnt_dir}" || _status 1 "Failed to create temporary mount directory"
+    loop_mnt="$( sudo losetup --partscan --find --show "${backup_saveas}.img" )" || _status 1 "Failed to create loop device"
+    sudo mount "${loop_mnt}p1" "${mnt_dir}" || _status 1 "Failed to mount copied system image"
     vnstat_current || _status 1 "Failed to get current vnStat version"
     case "${vnstat_version}" in
     
@@ -324,13 +324,13 @@ EOF
     sudo sed  -i "1 s|$| systemd\.run_success_action=reboot|" "${mnt_dir}/cmdline.txt" || _status 1 "Failed to add systemd.run_success_action=reboot to cmdline.txt"
     sudo sed  -i "1 s|$| systemd\.unit=kernel-command-line\.target|" "${mnt_dir}/cmdline.txt" || _status 1 "Failed to add systemd.unit=kernel-command-line.target to cmdline.txt"
     
-    sudo umount "$mnt_dir" || _status 1 "Failed to unmount copied system image"
+    sudo umount "${mnt_dir}" || _status 1 "Failed to unmount copied system image"
     sudo losetup -D || _status 1 "Failed to detach loop device"
     _status 0 "Files for fresh boot added"
 }
 
 vnstat_current() {
-    vnstat_version="$(sudo dpkg-query -l | grep "vnstat" | tr -s " " | cut -d " " -f 3)" || _status 1 "Failed to get vnStat version"
+    vnstat_version="$( sudo dpkg-query -l | grep "vnstat" | tr -s " " | cut -d " " -f 3 )" || _status 1 "Failed to get vnStat version"
     case "${vnstat_version}" in
         "" )
             _status 3 "vnStat not installed..."
@@ -357,10 +357,10 @@ pi_shrink() {
 zero_free() {
     part_n=$1
     _status 3 "Zeroing free space on ${part_n} to improve compression"
-    mnt_dir=$(mktemp -d)
-    mkdir -p "$mnt_dir" || _status 1 "Failed to create temporary mount directory"
-    loop_mnt=$(sudo losetup --partscan --find --show "${backup_saveas}.img") || _status 1 "Failed to create loop device"
-    sudo mount "${loop_mnt}${part_n}" "$mnt_dir" || _status 1 "Failed to mount copied system image"
+    mnt_dir="$( mktemp -d )"
+    mkdir -p "${mnt_dir}" || _status 1 "Failed to create temporary mount directory"
+    loop_mnt="$( sudo losetup --partscan --find --show "${backup_saveas}.img" )" || _status 1 "Failed to create loop device"
+    sudo mount "${loop_mnt}${part_n}" "${mnt_dir}" || _status 1 "Failed to mount copied system image"
     for i in {1..2}; do
         if [[ "${i}" -eq 1 ]]; then
             pass_l="coarse"
@@ -371,7 +371,7 @@ zero_free() {
             pass_u="Fine"
             dd_bs="1K"
         fi
-        k_to_clean=$(sudo df -k "${loop_mnt}${part_n}" -BKB | tail -1 | awk '{print $2-$3}')
+        k_to_clean="$( sudo df -k "${loop_mnt}${part_n}" -BKB | tail -1 | awk '{print $2-$3}' )"
         if [[ "${k_to_clean}" -lt 1000 ]]; then
             _status 3 "${pass_u} - There is ${k_to_clean}KB to clean for ${part_n}"
         elif [[ "${k_to_clean}" -lt 1000000 ]]; then
@@ -379,7 +379,7 @@ zero_free() {
         else
             _status 3 "${pass_u} - There is $(printf '%.2f\n' "$(echo "${k_to_clean}/1000000" | bc -l)")GB to clean for ${part_n}"
         fi
-        dd_zero="$(sudo dd bs="${dd_bs}" if=/dev/zero of="${mnt_dir}/delete_me_${pass_l}" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || \
+        dd_zero="$( sudo dd bs="${dd_bs}" if=/dev/zero of="${mnt_dir}/delete_me_${pass_l}" status=progress conv=fsync iflag=nocache oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2) )" || \
         _status 0 "Free space zeroed - $( echo "${dd_zero}" | tail -1 )"
         sync
         sync
@@ -389,15 +389,16 @@ zero_free() {
     sudo rm -f -v "${mnt_dir}/delete_me_fine" || _status 1 "Failed to delete fine dummy file"
     sync
     sync
-    sudo umount "$mnt_dir" || _status 1 "Failed to un-mount copied system image"
+    sudo umount "${mnt_dir}" || _status 1 "Failed to un-mount copied system image"
     sudo losetup -D || _status 1 "Failed to detach loop device"
     _status 0 "Zeroed free space on ${part_n}"
 }
 
 compress_zip() {
     _status 3 "Compressing backup"
-    sudo gzip -v "${backup_saveas}.img" || _status 1 "Failed to compress backup"
-    _status 0 "Backup compressed"
+    gzip_result="$( sudo gzip -v "${backup_saveas}.img" )" || _status 1 "Failed to compress backup"
+    compressed_size="$( du -bh "${backup_saveas}.img.gz" | cut -f1 )"
+    _status 0 "Backup compressed - $( echo "${gzip_result}" | awk -F  ":\t" '/1/ {print $2}' | awk '{print $5 " " $1}') ${compressed_size}"
 }
 
 _colors
