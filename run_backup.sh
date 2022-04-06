@@ -396,8 +396,8 @@ zero_free() {
 
 compress_zip() {
     _status 3 "Compressing backup"
-    gzip_result="$( sudo gzip -v "${backup_saveas}.img" )" || _status 1 "Failed to compress backup"
-    compressed_size="$( du -bh "${backup_saveas}.img.gz" | cut -f1 )"
+    gzip_result="$( sudo gzip -v "${backup_saveas}.img" 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || _status 1 "Failed to compress backup"
+    compressed_size="$( du -bh "${backup_saveas}.img.gz" | cut -f1 )" || _status 1 "Failed to compress backup size"
     _status 0 "Backup compressed - $( echo "${gzip_result}" | awk -F  ":\t" '/1/ {print $2}' | awk '{print $5 " " $1}') ${compressed_size}"
 }
 
