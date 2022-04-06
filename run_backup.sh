@@ -131,7 +131,6 @@ internet_check() {
 }
 
 parse_params() {
-    _status 3 "Parsing parameters"
     backup_destination=""
     backup_name=""
     backup_saveas=""
