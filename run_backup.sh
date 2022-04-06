@@ -161,6 +161,11 @@ parse_params() {
                 if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
                     backup_destination="$2"
                     backup_mount="$( df --output=source "${backup_destination}" )" || _status 1 "Invalid backup destination"
+echo "source"
+echo "${backup_mount}"
+echo
+echo "destination"
+echo "${backup_source}"
                     if [[ "$( echo "${backup_mount}" | head -n 1 )" == "Filesystem" ]]; then
                         if [[ "$(echo "${backup_mount}" | tail -n 1 )" == "*${backup_source}*" ]]; then
                             _status 1 "Backup destination is on source device"
