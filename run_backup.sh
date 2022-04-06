@@ -167,7 +167,7 @@ echo
 echo "destination"
 echo "${backup_source}"
                     if [[ "$( echo "${backup_mount}" | head -n 1 )" == "Filesystem" ]]; then
-                        if [[ "$(echo "${backup_mount}" | tail -n 1 )" == "*${backup_source}*" ]]; then
+                        if [[ "*$(echo "${backup_mount}" | tail -n 1 )*" == "*${backup_source}*" ]]; then
                             _status 1 "Backup destination is on source device"
                         else
                             [ -d "${backup_destination}/BackUp" ] || ( sudo -u "${user_name}" mkdir "${backup_destination}/BackUp" || _status 1 "Failed to create backup directory" )
