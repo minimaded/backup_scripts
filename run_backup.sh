@@ -6,12 +6,12 @@ do_all() {
     internet_check
     check_tools
     clean_repository
-    copy_system
-    fresh_boot
-    pi_shrink
-    zero_free "p1"
-    zero_free "p2"
-    compress_zip
+    #copy_system
+    #fresh_boot
+    #pi_shrink
+    #zero_free "p1"
+    #zero_free "p2"
+    #compress_zip
     _done
 }
 
@@ -239,13 +239,13 @@ parse_params() {
         esac
     done
     if [ -n "${backup_source}" ]; then
-        _status 0 "Using /dev/${backup_source} as backup source"
+        _status 3 "Using /dev/${backup_source} as backup source"
     else
         _status 1 "No backup source supplied"
     fi
     if [ -n "${backup_destination}" ] && [ -n "${backup_name}" ]; then
         backup_saveas="${backup_destination}/BackUp/${backup_name}-$(date '+%Y-%m-%d-%H%M%S')"
-        _status 0 "Saving backup to ${backup_saveas}"
+        _status 3 "Saving backup to ${backup_saveas}"
     elif [ -z "${backup_destination}" ]; then
         _status 1 "No backup destination supplied"
     elif [ -z "${backup_name}" ]; then
