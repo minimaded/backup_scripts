@@ -6,12 +6,12 @@ do_all() {
     internet_check
     check_tools
     clean_repository
-    #copy_system
-    #fresh_boot
-    #pi_shrink
-    #zero_free "p1"
-    #zero_free "p2"
-    #compress_zip
+    copy_system
+    fresh_boot
+    pi_shrink
+    zero_free "p1"
+    zero_free "p2"
+    compress_zip
     _done
 }
 
@@ -160,13 +160,7 @@ parse_params() {
             -d)
                 if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
                     backup_destination="$2"
-echo "${backup_destination}"
                     backup_mount="$( findmnt -T "${backup_destination}" -o SOURCE )" || _status 1 "Invalid backup destination"
-echo "Destination"
-echo "${backup_mount}"
-echo
-echo "Source"
-echo "${backup_source}"
                     if [[ "$( echo "${backup_mount}" | head -n 1 )" == "SOURCE" ]]; then
                         if [[ "$(echo "${backup_mount}" | tail -n 1 )" == *"${backup_source}"* ]]; then
                             _status 1 "Backup destination is on source device"
