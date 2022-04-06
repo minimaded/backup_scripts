@@ -238,20 +238,19 @@ parse_params() {
             ;;
         esac
     done
-    if [ -n "${backup_source}" ]; then
-        _status 3 "Using /dev/${backup_source} as backup source"
-    else
+    if [ -z "${backup_source}" ]; then
         _status 1 "No backup source supplied"
     fi
     if [ -n "${backup_destination}" ] && [ -n "${backup_name}" ]; then
         backup_saveas="${backup_destination}/BackUp/${backup_name}-$(date '+%Y-%m-%d-%H%M%S')"
-        _status 3 "Saving backup to ${backup_saveas}"
     elif [ -z "${backup_destination}" ]; then
         _status 1 "No backup destination supplied"
     elif [ -z "${backup_name}" ]; then
         _status 1 "No backup name supplied"
     fi
-    _status 0 "Parameters parsed"
+    _status 0 "Parameters parsed" | tee /dev/tty | log_file
+    _status 3 "Using /dev/${backup_source} as backup source" | tee /dev/tty | log_file
+    _status 3 "Saving backup to ${backup_saveas}" | tee /dev/tty | log_file
 }
 
 check_tools() {
