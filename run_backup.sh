@@ -430,9 +430,14 @@ zero_free() {
 
 compress_zip() {
     _status 3 "Compressing backup"
-    gzip_result="$( sudo gzip -v "${backup_saveas}.img" 3>&1 1>&2 2>&3 | tee >(cat - >&2))" || _status 1 "Failed to compress backup"
+    gzip_result="$( sudo gzip -v "${backup_saveas}.img" 3>&1 1>&2 2>&3 | tee >(cat - >&2) )" || _status 1 "Failed to compress backup"
+    echo
+    echo
+    echo "${gzip_result}"
+    echo
+    echo
     compressed_size="$( du -bh "${backup_saveas}.img.gz" | cut -f1 )" || _status 1 "Failed to compress backup size"
-    _status 0 "Backup compressed - $( echo "${gzip_result}" | awk -F  ":\t" '/1/ {print $2}' | awk '{print $5 " " $1}') ${compressed_size}"
+    _status 0 "Backup compressed - $( echo "${gzip_result}" | awk -F  ":\t" '/1/ {print $2}' | awk '{print $5 " " $1}' ) ${compressed_size}"
 }
 
 _colors
