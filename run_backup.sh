@@ -291,7 +291,7 @@ copy_system() {
         _status 3 "Copying system - $(printf '%.2f\n' "$(echo "${source_size}/1000000000" | bc -l)")GB to back up"
     fi
     dd_copy="$( sudo dd bs=1M if="/dev/${backup_source}" of="${backup_saveas}.img" status=progress conv=fsync oflag=direct 3>&1 1>&2 2>&3 | tee >(cat - >&2) )" || status 1 "Failed to copy system to backup destination"
-    _status 0 "System copied, $( echo "${dd_copy}" | tail -1 )"
+    _status 0 "System copied - $( echo "${dd_copy}" | tail -1 )"
 }
 
 fresh_boot() {
