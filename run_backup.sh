@@ -30,7 +30,8 @@ _done() {
 }
 
 _notdone() {
-    echo "Backup failed..."
+    echo
+    read -r -p "Backup failed...Press any key to exit " -n1 -s 
     exit 1
 }
 
