@@ -18,20 +18,23 @@ do_all() {
         raspap_reboot
         _reboot 10
     else
-        read -r -p "Download RaspAP update? [y/N] " response
+        echo -n "Download RaspAP update? [y/N] "
+        read response < /dev/tty
         case "$response" in
             [yY][eE][sS]|[yY])
                 compress_oldfiles
                 update_raspap
         esac
-        read -r -p "Continue update script? [y/N] " response
+        read -n "Continue update script? [y/N] "
+        read response < /dev/tty
         case "$response" in
             [yY][eE][sS]|[yY])
                 delete_oldfiles
                 clear_vnstat
                 _status 0 "RaspAP update completed"
         esac
-        read -r -p "Reboot? [y/N] " response
+        read -n "Reboot? [y/N] "
+        read response < /dev/tty
         case "$response" in
             [yY][eE][sS]|[yY])
                 raspap_reboot
@@ -56,13 +59,17 @@ _done() {
         echo "${warnings}"
     fi
     echo
-    read -r -p "Press any key to exit... " -n1 -s 
+    echo -n "Press any key to exit..."
+    read -n 1
+    echo
     exit 0
 }
 
 _notdone() {
     echo
-    read -r -p "${script_name} failed...Press any key to exit" -n1 -s 
+    echo -n "${script_name} failed...Press any key to exit"
+    read -n 1
+    echo
     exit 1
 }
 
@@ -359,7 +366,10 @@ echo_warnings() {
     echo
     sudo rm -f "/home/${user_name}/raspapreboot.sh"
     sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop"
-    read -r -p "Press any key to exit... " -n1 -s 
+    echo
+    echo -n "Press any key to exit..."
+    read -n 1
+    echo
     exit 0
 }
 

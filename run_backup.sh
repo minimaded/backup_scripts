@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+user_name="$( sudo ls "/home" | tail -n 1 )"
+script_name="Backup"
+
 do_all() {
     internet_check
     check_tools
@@ -16,8 +19,8 @@ do_all() {
 }
 
 _done() {
-    _status 0 "Backup completed"
-    warnings="$( grep "Warning" "${backup_saveas}.log" )"
+    _status 0 "${script_name} done"
+    warnings="$( grep "\[Warning\]" "${backup_saveas}.log" )" || _status 1 "Failed to get warnings from log file"
     echo
     if [ -n "${warnings}" ] ; then
         echo "The following warnings occurred..."
@@ -25,13 +28,17 @@ _done() {
         echo "${warnings}"
     fi
     echo
-    read -r -p "Press any key to exit... " -n1 -s 
+    echo -n "Press any key to exit..."
+    read -n 1
+    echo
     exit 0
 }
 
 _notdone() {
     echo
-    read -r -p "Backup failed...Press any key to exit " -n1 -s 
+    echo -n "${script_name} failed...Press any key to exit"
+    read -n 1
+    echo
     exit 1
 }
 
@@ -91,7 +98,7 @@ _sleep() {
 
 log_file() {
     while read -r line; do
-        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log" > /dev/null
+        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log" > /dev/null || _status 1 "Failed to append log file"
     done
 }
 
@@ -261,7 +268,7 @@ check_tools() {
         command -v "${command}" >/dev/null 2>&1
         if (( $? != 0 )); then
             echo
-            echo "${command} is required, press \"y\" to install"
+            echo -n "${command} is required, press \"y\" to install... "
             read -p "" -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -438,7 +445,6 @@ compress_zip() {
 
 _colors
 script_path="$( readlink -f "$0" )"
-user_name="$( sudo ls "/home" | tail -n 1 )"
 parse_params "$@"
 _status 0 "Username is ${user_name}" | tee /dev/tty | log_file
 do_all | tee /dev/tty | log_file
