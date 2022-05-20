@@ -51,7 +51,7 @@ comment_done() {
 
 _done() {
     _status 0 "${script_name} done"
-    warnings="$( grep "\[Warning\]" "${logfile_name}" )" || _status 1 "Failed to get warnings from log file"
+    warnings="$( echo "$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1 "Failed to get warnings from log file"
     echo
     if [ -n "${warnings}" ] ; then
         echo "The following warnings occurred..."
@@ -356,7 +356,7 @@ _reboot() {
 
 echo_warnings() {
     echo "RaspAP update done"
-    warnings="\$( grep "\[Warning\]" "${logfile_name}" )" || "Failed to get warnings from log file"
+    warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1 "Failed to get warnings from log file"
     echo
     if [ -n "\${warnings}" ] ; then
         echo "The following warnings occurred..."

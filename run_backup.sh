@@ -20,7 +20,7 @@ do_all() {
 
 _done() {
     _status 0 "${script_name} done"
-    warnings="$( grep "\[Warning\]" "${backup_saveas}.log" )" || _status 1 "Failed to get warnings from log file"
+    warnings="$( echo "$( grep "\[Warning\]" "${backup_saveas}.log" )" )" || _status 1 "Failed to get warnings from log file"
     echo
     if [ -n "${warnings}" ] ; then
         echo "The following warnings occurred..."
