@@ -349,7 +349,7 @@ _status () {
             echo -e  "[ Error ] ""\$2" | relog | tee /dev/tty | log_file
             exit 1
         ;;
-	
+    esac
 }
 
 log_file() {
