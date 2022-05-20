@@ -363,7 +363,6 @@ echo_warnings() {
         echo
         echo "\${warnings}"
     fi
-    echo
     sudo rm -f "/home/${user_name}/raspapreboot.sh"
     sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop"
     echo
