@@ -213,8 +213,7 @@ compress_oldfiles() {
     for old_folder in $old_folders; do
         sudo tar -rf "${backup_saveas}.tar" "${old_folder}" &> /dev/null || _status 1 "Failed to compress old folders"
     done
-    tar -rf "${backup_saveas}.tar" "/etc/dhcpcd.conf" &> /dev/null || _status 1 "Failed to compress dhcpcd.conf"
-    sudo chown "${user_name}":"${user_name}" "${backup_saveas}.tar" "/etc/dhcpcd.conf" || _status 1 "Failed to change owener of backup tar"
+    sudo tar -rf "${backup_saveas}.tar" "/etc/dhcpcd.conf" &> /dev/null || _status 1 "Failed to compress dhcpcd.conf"
     _status 0 "Old files backed up"
 }
 
@@ -223,7 +222,7 @@ update_raspap() {
     curl -sL https://install.raspap.com | bash -s -- -o 0 -a 0 -y -u || _status 1 "Failed to run RaspAP install script"
 
     sudo mkdir -p "/tmp/raspap_files" || _status 1 "Failed to create temporary RaspAP directory"
-    tar -xf "/boot/raspap_files.tar.gz" -C "/tmp" || _status 1 "Failed to decompress temporary RaspAP files"
+    sudo tar -xf "/boot/raspap_files.tar.gz" -C "/tmp" || _status 1 "Failed to decompress temporary RaspAP files"
 
     ( sudo cp "/tmp/raspap_files/dhcpcd.conf" "/etc/" && sudo chown root:netdev "/etc/dhcpcd.conf" ) || _status 1 "Failed to copy dhcpcd.conf"
 
