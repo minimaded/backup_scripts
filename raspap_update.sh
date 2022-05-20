@@ -382,8 +382,8 @@ _reboot() {
 echo_warnings() {
     _status 0 "RaspAP update done" | relog
     warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1  "Failed to get warnings from log file"
-    echo
     if [ -n "\${warnings}" ] ; then
+        echo
         echo "The following warnings occurred..."
         echo
         echo "\${warnings}"
