@@ -25,7 +25,7 @@ do_all() {
                 compress_oldfiles
                 update_raspap
         esac
-        read -n "Continue update script? [y/N] "
+        echo -n "Continue update script? [y/N] "
         read response < /dev/tty
         case "$response" in
             [yY][eE][sS]|[yY])
@@ -33,7 +33,7 @@ do_all() {
                 clear_vnstat
                 _status 0 "RaspAP update completed"
         esac
-        read -n "Reboot? [y/N] "
+        echo -n "Reboot? [y/N] "
         read response < /dev/tty
         case "$response" in
             [yY][eE][sS]|[yY])
