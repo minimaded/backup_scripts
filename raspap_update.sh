@@ -211,9 +211,10 @@ compress_oldfiles() {
     _status 3 "Backing up old files"
     old_folders="$(find '/etc/' -maxdepth 1 -iname 'raspap*' -o -iname 'dnsmasq.d' -o -iname 'hostapd')"$'\n'"$(find '/etc/network/' -maxdepth 1 -iname 'interfaces.d')"$'\n'"$(find '/var/www/' -maxdepth 1 -iname 'html*')" || _status 1 "Failed to find old folders"
     for old_folder in $old_folders; do
-        tar -rf "${backup_saveas}.tar" "${old_folder}" &> /dev/null || _status 1 "Failed to compress old folders"
+        sudo tar -rf "${backup_saveas}.tar" "${old_folder}" &> /dev/null || _status 1 "Failed to compress old folders"
     done
     tar -rf "${backup_saveas}.tar" "/etc/dhcpcd.conf" &> /dev/null || _status 1 "Failed to compress dhcpcd.conf"
+    sudo chown "${user_name}":"${user_name}" "${backup_saveas}.tar" "/etc/dhcpcd.conf" || _status 1 "Failed to change owener of backup tar"
     _status 0 "Old files backed up"
 }
 
