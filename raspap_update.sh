@@ -340,14 +340,21 @@ do_all() {
     echo_warnings
 }
 
-_error () {
-    echo -e  "[ Error ] ""\$1" | relog
-    exit 1
+_status () {
+    case \$1 in
+        0)
+            echo -e  "[Success] ""\$2" | relog | tee /dev/tty | log_file
+        ;;
+        1)
+            echo -e  "[ Error ] ""\$2" | relog | tee /dev/tty | log_file
+            exit 1
+        ;;
+	
 }
 
 log_file() {
     while read -r line; do
-        echo "\${line}" | sudo tee -a "${logfile_name}" > /dev/null || _error "Failed to append log file"
+        echo "\${line}" | sudo tee -a "${logfile_name}" > /dev/null || _status 1  "Failed to append log file"
     done
 }
 
@@ -367,22 +374,22 @@ _reboot() {
         (( ++count ))
     done
     echo
-    sed -i "0,/_reboot/s//#_reboot/" "/home/${user_name}/raspapreboot.sh" || _error "Failed to comment reboot function done"
+    sed -i "0,/_reboot/s//#_reboot/" "/home/${user_name}/raspapreboot.sh" || _status 1  "Failed to comment reboot function done"
     sudo reboot
     exit 0
 }
 
 echo_warnings() {
-    echo "RaspAP update done" | relog
-    warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_name}" )" )" || _error "Failed to get warnings from log file"
+    _status 0 "RaspAP update done" | relog
+    warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1  "Failed to get warnings from log file"
     echo
     if [ -n "\${warnings}" ] ; then
         echo "The following warnings occurred..."
         echo
         echo "\${warnings}"
     fi
-    sudo rm -f "/home/${user_name}/raspapreboot.sh" || _error  "Failed to remove raspapreboot script"
-    sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop" || _error "Failed to remove raspapreboot autostart file"
+    sudo rm -f "/home/${user_name}/raspapreboot.sh" || _status 1   "Failed to remove raspapreboot script"
+    sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop" || _status 1  "Failed to remove raspapreboot autostart file"
     echo
     echo -n "Press any key to exit..."
     read -n 1
@@ -390,7 +397,7 @@ echo_warnings() {
     exit 0
 }
 
-do_all | tee /dev/tty | log_file
+do_all
 EOF
 
     sudo chmod +x "/home/${user_name}/raspapreboot.sh" || _status 1 "Failed to make reboot script executable"
