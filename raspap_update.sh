@@ -335,9 +335,29 @@ EOF
 
 set -eo pipefail
 
+logfile_name="/home/${user_name}/Log Files/raspap_log.txt"
+
 do_all() {
     _reboot 30
     echo_warnings
+}
+
+_fail () {
+    echo -e "\$1" | relog
+    exit 1
+}
+
+log_file() {
+    while read -r line; do
+        echo "\${line}" | sudo tee -a "\${logfile_name}" > /dev/null || _fail "Failed to append log file"
+    done
+}
+
+relog() {
+    while read -r line; do
+        timestamp="$( date +"%Y-%m-%d %H:%M:%S" )"
+        echo "[${timestamp}] ${line}"
+    done
 }
 
 _reboot() {
@@ -349,22 +369,22 @@ _reboot() {
         (( ++count ))
     done
     echo
-    sed -i "0,/_reboot/s//#_reboot/" "/home/${user_name}/raspapreboot.sh"
+    sed -i "0,/_reboot/s//#_reboot/" "/home/${user_name}/raspapreboot.sh" || _fail "Failed to comment reboot function done"
     sudo reboot
     exit 0
 }
 
 echo_warnings() {
-    echo "RaspAP update done"
-    warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1 "Failed to get warnings from log file"
+    echo "RaspAP update done" | relog
+    warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_name}" )" )" || _fail "Failed to get warnings from log file"
     echo
     if [ -n "\${warnings}" ] ; then
         echo "The following warnings occurred..."
         echo
         echo "\${warnings}"
     fi
-    sudo rm -f "/home/${user_name}/raspapreboot.sh"
-    sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop"
+    sudo rm -f "/home/${user_name}/raspapreboot.sh" || _fail  "Failed to remove raspapreboot script"
+    sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop" || _fail "Failed to remove raspapreboot autostart file"
     echo
     echo -n "Press any key to exit..."
     read -n 1
@@ -372,7 +392,7 @@ echo_warnings() {
     exit 0
 }
 
-do_all
+do_all | tee /dev/tty | log_file
 EOF
 
     sudo chmod +x "/home/${user_name}/raspapreboot.sh" || _status 1 "Failed to make reboot script executable"
