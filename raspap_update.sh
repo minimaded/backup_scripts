@@ -19,14 +19,14 @@ do_all() {
         _reboot 10
     else
         echo -n "Download RaspAP update? [y/N] "
-        read response < /dev/tty
+        read -r response < /dev/tty
         case "$response" in
             [yY][eE][sS]|[yY])
                 compress_oldfiles
                 update_raspap
         esac
         echo -n "Continue update script? [y/N] "
-        read response < /dev/tty
+        read -r response < /dev/tty
         case "$response" in
             [yY][eE][sS]|[yY])
                 delete_oldfiles
@@ -34,7 +34,7 @@ do_all() {
                 _status 0 "RaspAP update completed"
         esac
         echo -n "Reboot? [y/N] "
-        read response < /dev/tty
+        read -r response < /dev/tty
         case "$response" in
             [yY][eE][sS]|[yY])
                 raspap_reboot
@@ -60,7 +60,7 @@ _done() {
     fi
     echo
     echo -n "Press any key to exit..."
-    read -n 1
+    read -r -n 1
     echo
     exit 0
 }
@@ -68,7 +68,7 @@ _done() {
 _notdone() {
     echo
     echo -n "${script_name} failed...Press any key to exit"
-    read -n 1
+    read -r -n 1
     echo
     exit 1
 }
@@ -392,7 +392,7 @@ echo_warnings() {
     sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop" || _status 1  "Failed to remove raspapreboot autostart file"
     echo
     echo -n "Press any key to exit..."
-    read -n 1
+    read -r -n 1
     echo
     exit 0
 }
