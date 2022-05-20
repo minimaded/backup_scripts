@@ -335,8 +335,6 @@ EOF
 
 set -eo pipefail
 
-logfile_name="/home/${user_name}/Log Files/raspap_log.txt"
-
 do_all() {
     _reboot 30
     echo_warnings
@@ -349,14 +347,14 @@ _fail () {
 
 log_file() {
     while read -r line; do
-        echo "\${line}" | sudo tee -a "\${logfile_name}" > /dev/null || _fail "Failed to append log file"
+        echo "\${line}" | sudo tee -a "${logfile_name}" > /dev/null || _fail "Failed to append log file"
     done
 }
 
 relog() {
     while read -r line; do
-        timestamp="$( date +"%Y-%m-%d %H:%M:%S" )"
-        echo "[${timestamp}] ${line}"
+        timestamp="\$( date +"%Y-%m-%d %H:%M:%S" )"
+        echo "[\${timestamp}] \${line}"
     done
 }
 
