@@ -288,14 +288,14 @@ clear_vnstat() {
     vnstat_current || _status 1 "Failed to get current vnStat version"
     case "${vnstat_version}" in
         "1.18-2" )
-            rm /var/lib/vnstat/* || _status 1 "Failed to remove vnStat directory"
+            sudo rm /var/lib/vnstat/* || _status 1 "Failed to remove vnStat directory"
             sudo systemctl restart vnstat.service || _status 1 "Failed to restart vnStat service"
             sudo -u vnstat vnstat -i eth0 -u || _status 1 "Failed to add eth0 to vnStat"
             sudo -u vnstat vnstat -i wlan0 -u || _status 1 "Failed to add wlan0 to vnStat"
             sudo -u vnstat vnstat -i wlan1 -u || _status 1 "Failed to add wlan1 to vnStat"
         ;;
         "2.6-3" )
-            rm /var/lib/vnstat/* || _status 1 "Failed to remove vnStat directory"
+            sudo rm /var/lib/vnstat/* || _status 1 "Failed to remove vnStat directory"
             sudo systemctl restart vnstat.service || _status 1 "Failed to restart vnStat service"
         ;;
     esac

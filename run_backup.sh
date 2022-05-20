@@ -316,7 +316,7 @@ fresh_boot() {
             cat << EOF | sudo tee -a "${mnt_dir}/freshboot.sh" >/dev/null || _status 1 "Failed to add vnStat 1.18-2 fresh boot commands"
 #!/bin/bash
 
-rm /var/lib/vnstat/*
+sudo rm /var/lib/vnstat/*
 sudo systemctl restart vnstat.service
 sudo -u vnstat vnstat -i eth0 -u
 sudo -u vnstat vnstat -i wlan0 -u
@@ -334,7 +334,7 @@ EOF
             cat << EOF | sudo tee -a "${mnt_dir}/freshboot.sh" >/dev/null || _status 1 "Failed to add vnStat 2.6-3 fresh boot commands"
 #!/bin/bash
 
-rm /var/lib/vnstat/*
+sudo rm /var/lib/vnstat/*
 sudo systemctl restart vnstat.service
 sed -i 's| systemd.run=/boot/freshboot.sh||g' /boot/cmdline.txt
 sed -i 's| systemd.run_success_action=reboot||g' /boot/cmdline.txt
