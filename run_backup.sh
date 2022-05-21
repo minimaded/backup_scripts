@@ -83,6 +83,13 @@ _status() {
     esac
 }
 
+_query() {
+    response=""
+    echo -n "${1} " > /dev/tty
+    read -r response < /dev/tty
+    echo "[ Query ] ${1} ${response}" | relog | log_file
+}
+
 _sleep() {
     count=0
     total=$1
@@ -268,10 +275,7 @@ check_tools() {
     for command in $req_tools; do
         command -v "${command}" >/dev/null 2>&1
         if (( $? != 0 )); then
-            echo
-            echo -n "${command} is required, press \"y\" to install... "
-            read -r response < /dev/tty
-            echo
+            _query "${command} is required, press [y/N] to install... "
             case "$response" in
                 [yY][eE][sS]|[yY])
                     sudo apt-get install "${command}"
