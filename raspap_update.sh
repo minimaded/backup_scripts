@@ -282,14 +282,14 @@ clear_vnstat() {
     _status 3 "Clearing vnStat"
     vnstat_current || _status 1 "Failed to get current vnStat version"
     case "${vnstat_version}" in
-        "1.18-2" )
+        "1.18-2")
             sudo rm /var/lib/vnstat/* || _status 1 "Failed to remove vnStat directory"
             sudo systemctl restart vnstat.service || _status 1 "Failed to restart vnStat service"
             sudo -u vnstat vnstat -i eth0 -u || _status 1 "Failed to add eth0 to vnStat"
             sudo -u vnstat vnstat -i wlan0 -u || _status 1 "Failed to add wlan0 to vnStat"
             sudo -u vnstat vnstat -i wlan1 -u || _status 1 "Failed to add wlan1 to vnStat"
         ;;
-        "2.6-3" )
+        "2.6-3")
             sudo rm /var/lib/vnstat/* || _status 1 "Failed to remove vnStat directory"
             sudo systemctl restart vnstat.service || _status 1 "Failed to restart vnStat service"
         ;;
@@ -300,9 +300,9 @@ clear_vnstat() {
 vnstat_current() {
     vnstat_version="$( sudo dpkg-query -l | grep "vnstat" | tr -s " " | cut -d " " -f 3 )" || _status 1 "Failed to get vnStat version"
     case "${vnstat_version}" in
-        "" ) _status 3 "vnStat not installed..." ;;
-        "2.6-3" | "1.18" ) _status 3 "vnStat ${vnstat_version} installed..." ;;
-        "*" ) _status 2 "vnStat ${vnstat_version} not supported..." ;;
+        "") _status 3 "vnStat not installed..." ;;
+        "2.6-3"|"1.18") _status 3 "vnStat ${vnstat_version} installed..." ;;
+        "*") _status 2 "vnStat ${vnstat_version} not supported..." ;;
     esac
 }
 

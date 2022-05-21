@@ -305,7 +305,7 @@ fresh_boot() {
     vnstat_current || _status 1 "Failed to get current vnStat version"
     case "${vnstat_version}" in
     
-        "1.18-2" )
+        "1.18-2")
             cat << EOF | sudo tee -a "${mnt_dir}/freshboot.sh" >/dev/null || _status 1 "Failed to add vnStat 1.18-2 fresh boot commands"
 #!/bin/bash
 
@@ -323,7 +323,7 @@ sudo /usr/bin/raspi-config --expand-rootfs
 exit 0
 EOF
         ;;
-        "2.6-3" )
+        "2.6-3")
             cat << EOF | sudo tee -a "${mnt_dir}/freshboot.sh" >/dev/null || _status 1 "Failed to add vnStat 2.6-3 fresh boot commands"
 #!/bin/bash
 
@@ -338,7 +338,7 @@ sudo /usr/bin/raspi-config --expand-rootfs
 exit 0
 EOF
         ;;
-        "" | "*" )
+        ""|"*")
             cat << EOF | sudo tee -a "${mnt_dir}/freshboot.sh" >/dev/null || _status 1 "Failed to add non vnStat fresh boot commands"
 #!/bin/bash
 
@@ -367,9 +367,9 @@ EOF
 vnstat_current() {
     vnstat_version="$( sudo dpkg-query -l | grep "vnstat" | tr -s " " | cut -d " " -f 3 )" || _status 1 "Failed to get vnStat version"
     case "${vnstat_version}" in
-        "" ) _status 3 "vnStat not installed..." ;;
-        "2.6-3" | "1.18" ) _status 3 "vnStat ${vnstat_version} installed..." ;;
-        "*" ) _status 2 "vnStat ${vnstat_version} not supported..." ;;
+        "") _status 3 "vnStat not installed..." ;;
+        "2.6-3"|"1.18") _status 3 "vnStat ${vnstat_version} installed..." ;;
+        "*") _status 2 "vnStat ${vnstat_version} not supported..." ;;
     esac
 }
 
