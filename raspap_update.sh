@@ -18,27 +18,27 @@ do_all() {
         raspap_reboot
         _reboot 10
     else
-        echo -n "Download RaspAP update? [y/N] "
+        echo -n "Download RaspAP update? [y/N] " | tee /dev/tty | relog | log_file
         read -r response < /dev/tty
-        echo "$response" > /dev/null
-        case "$response" in
+        echo "${response}" > logfile
+        case "${response}" in
             [yY][eE][sS]|[yY])
                 compress_oldfiles
                 update_raspap
         esac
-        echo -n "Continue update script? [y/N] "
+        echo -n "Continue update script? [y/N] " | tee /dev/tty | relog | log_file
         read -r response < /dev/tty
-        echo "$response" > /dev/null
-        case "$response" in
+        echo "${response}" > logfile
+        case "${response}" in
             [yY][eE][sS]|[yY])
                 delete_oldfiles
                 clear_vnstat
                 _status 0 "RaspAP update completed"
         esac
-        echo -n "Reboot? [y/N] "
+        echo -n "Reboot? [y/N] " | tee /dev/tty | relog | log_file
         read -r response < /dev/tty
-        echo "$response" > /dev/null
-        case "$response" in
+        echo "${response}" > logfile
+        case "${response}" in
             [yY][eE][sS]|[yY])
                 raspap_reboot
                 _reboot 10
