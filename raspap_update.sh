@@ -52,15 +52,15 @@ comment_done() {
 _done() {
     _status 0 "${script_name} done"
     warnings="$( echo "$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1 "Failed to get warnings from log file"
-    echo
     if [ -n "${warnings}" ] ; then
+        echo
         echo "The following warnings occurred..."
         echo
         echo "${warnings}"
     fi
     echo
     echo -n "Press any key to exit..."
-    read -r -n 1
+    pause
     echo
     exit 0
 }
@@ -68,7 +68,7 @@ _done() {
 _notdone() {
     echo
     echo -n "${script_name} failed...Press any key to exit"
-    read -r -n 1
+    pause
     echo
     exit 1
 }
@@ -119,12 +119,14 @@ _status() {
 _sleep() {
     count=0
     total=$1
+    _status 3 "Waiting ${total} seconds"
     while [ "${count}" -lt "${total}" ]; do
         printf "\rPlease wait %ds  " $(( total - count ))
         sleep 1
         (( ++count ))
     done
     echo
+    _status 1 "Waited ${total} seconds, continuing..."
 }
 
 _reboot() {
@@ -136,13 +138,24 @@ _reboot() {
         (( ++count ))
     done
     echo
+    _status 1 "Rebooting"
     sudo reboot
     exit 0
 }
 
 log_file() {
     while read -r line; do
-        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${logfile_name}" > /dev/null || _status 1 "Failed to append log file"
+        case "${line}" in
+            "Please wait *")
+                break
+            ;;
+            "Rebooting in *")
+                break
+            ;;
+            *)
+                echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${logfile_name}" > /dev/null || _status 1 "Failed to append log file"
+            ;;
+        esac
     done
 }
 
@@ -343,10 +356,10 @@ do_all() {
 _status () {
     case \$1 in
         0)
-            echo -e  "[Success] ""\$2" | relog | tee /dev/tty | log_file
+            echo -e  "[Success] ""\$2" | relog
         ;;
         1)
-            echo -e  "[ Error ] ""\$2" | relog | tee /dev/tty | log_file
+            echo -e  "[ Error ] ""\$2" | relog
             exit 1
         ;;
     esac
@@ -354,7 +367,17 @@ _status () {
 
 log_file() {
     while read -r line; do
-        echo "\${line}" | sudo tee -a "${logfile_name}" > /dev/null || _status 1  "Failed to append log file"
+        case "\${line}" in
+            "Please wait *")
+                break
+            ;;
+            "Rebooting in *")
+                break
+            ;;
+            *)
+               echo "\${line}" | sudo tee -a "${logfile_name}" > /dev/null || _status 1  "Failed to append log file"
+            ;;
+        esac
     done
 }
 
@@ -375,6 +398,7 @@ _reboot() {
     done
     echo
     sed -i "0,/_reboot/s//#_reboot/" "/home/${user_name}/raspapreboot.sh" || _status 1  "Failed to comment reboot function done"
+    _status 0 "Rebooting"
     sudo reboot
     exit 0
 }
@@ -392,12 +416,12 @@ echo_warnings() {
     sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop" || _status 1  "Failed to remove raspapreboot autostart file"
     echo
     echo -n "Press any key to exit..."
-    read -r -n 1
+    pause
     echo
     exit 0
 }
 
-do_all
+do_all | tee /dev/tty | log_file
 EOF
 
     sudo chmod +x "/home/${user_name}/raspapreboot.sh" || _status 1 "Failed to make reboot script executable"
