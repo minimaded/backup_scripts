@@ -20,6 +20,7 @@ do_all() {
     else
         echo -n "Download RaspAP update? [y/N] "
         read -r response < /dev/tty
+        echo "$response"
         case "$response" in
             [yY][eE][sS]|[yY])
                 compress_oldfiles
@@ -27,6 +28,7 @@ do_all() {
         esac
         echo -n "Continue update script? [y/N] "
         read -r response < /dev/tty
+        echo "$response"
         case "$response" in
             [yY][eE][sS]|[yY])
                 delete_oldfiles
@@ -35,6 +37,7 @@ do_all() {
         esac
         echo -n "Reboot? [y/N] "
         read -r response < /dev/tty
+        echo "$response"
         case "$response" in
             [yY][eE][sS]|[yY])
                 raspap_reboot
