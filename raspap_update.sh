@@ -57,7 +57,7 @@ _done() {
     fi
     echo
     echo -n "Press any key to exit..."
-    read -r -s -n 1 any_key
+    read -r -s -n 1 any_key < /dev/tty
     echo
     exit 0
 }
@@ -65,7 +65,7 @@ _done() {
 _notdone() {
     echo
     echo -n "${script_name} failed...Press any key to exit"
-    read -r -s -n 1 any_key
+    read -r -s -n 1 any_key < /dev/tty
     echo
     exit 1
 }
@@ -403,7 +403,7 @@ echo_warnings() {
     sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop" || _status 1  "Failed to remove raspapreboot autostart file"
     echo
     echo -n "Press any key to exit..."
-    read -r -s -n 1 any_key
+    read -r -s -n 1 any_key < /dev/tty
     echo
     exit 0
 }
