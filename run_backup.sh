@@ -8,13 +8,13 @@ script_name="Backup"
 do_all() {
     internet_check
     check_tools
-    clean_repository
-    copy_system
-    fresh_boot
-    pi_shrink
-    zero_free "p1"
-    zero_free "p2"
-    compress_zip
+    #clean_repository
+    #copy_system
+    #fresh_boot
+    #pi_shrink
+    #zero_free "p1"
+    #zero_free "p2"
+    #compress_zip
     _done
 }
 
@@ -22,23 +22,21 @@ _done() {
     _status 0 "${script_name} done"
     warnings="$( echo "$( grep "\[Warning\]" "${backup_saveas}.log" )" )" || _status 1 "Failed to get warnings from log file"
     if [ -n "${warnings}" ] ; then
-        echo
-        echo "The following warnings occurred..."
-        echo
-        echo "${warnings}"
+        echo > /dev/tty
+        echo "The following warnings occurred..." > /dev/tty
+        echo > /dev/tty
+        echo "${warnings}" > /dev/tty
     fi
-    echo
-    echo -n "Press any key to exit..."
-    read -r -s -n 1 any_key < /dev/tty
-    echo
+    echo > /dev/tty
+    read -r -p "${script_name} completed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
+    echo > /dev/tty
     exit 0
 }
 
 _notdone() {
-    echo
-    echo -n "${script_name} failed...Press any key to exit"
-    read -r -s -n 1 any_key < /dev/tty
-    echo
+    echo > /dev/tty
+    read -r -p "${script_name} failed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
+    echo > /dev/tty
     exit 1
 }
 

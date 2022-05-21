@@ -50,23 +50,21 @@ _done() {
     _status 0 "${script_name} done"
     warnings="$( echo "$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1 "Failed to get warnings from log file"
     if [ -n "${warnings}" ] ; then
-        echo
-        echo "The following warnings occurred..."
-        echo
-        echo "${warnings}"
+        echo > /dev/tty
+        echo "The following warnings occurred..." > /dev/tty
+        echo > /dev/tty
+        echo "${warnings}" > /dev/tty
     fi
-    echo
-    echo -n "Press any key to exit..."
-    read -r -s -n 1 any_key < /dev/tty
-    echo
+    echo > /dev/tty
+    read -r -p "${script_name} completed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
+    echo > /dev/tty
     exit 0
 }
 
 _notdone() {
-    echo
-    echo -n "${script_name} failed...Press any key to exit"
-    read -r -s -n 1 any_key < /dev/tty
-    echo
+    echo > /dev/tty
+    read -r -p "${script_name} failed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
+    echo > /dev/tty
     exit 1
 }
 
@@ -354,9 +352,9 @@ _status () {
         ;;
         1)
             echo -e  "[ Error ] ""\$2" | relog
-            echo -n "Press any key to exit"
-            read -r -s -n 1 any_key
-            echo
+            echo > /dev/tty
+            read -r -p "Failed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
+            echo > /dev/tty
             exit 1
         ;;
     esac
@@ -394,17 +392,16 @@ echo_warnings() {
     _status 0 "RaspAP update done"
     warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1  "Failed to get warnings from log file"
     if [ -n "\${warnings}" ] ; then
-        echo
-        echo "The following warnings occurred..."
-        echo
-        echo "\${warnings}"
+        echo > /dev/tty
+        echo "The following warnings occurred..." > /dev/tty
+        echo > /dev/tty
+        echo "\${warnings}" > /dev/tty
     fi
     sudo rm -f "/home/${user_name}/raspapreboot.sh" || _status 1   "Failed to remove raspapreboot script"
     sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop" || _status 1  "Failed to remove raspapreboot autostart file"
-    echo
-    echo -n "Press any key to exit..."
-    read -r -s -n 1 any_key < /dev/tty
-    echo
+    echo > /dev/tty
+    read -r -p "Completed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
+    echo > /dev/tty
     exit 0
 }
 
