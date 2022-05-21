@@ -273,11 +273,12 @@ check_tools() {
     _status 3 "Checking for required tools"
 	echo "test"
 	
-	echo "test 12"
+	echo "test 123"
     req_tools="parted losetup tune2fs md5sum e2fsck resize2fs"
     for command in $req_tools; do
 	echo "test 2"
         command -v "${command}"
+		echo $?
 		echo "test 3"
         if (( $? != 0 )); then
 		echo "test 4"
