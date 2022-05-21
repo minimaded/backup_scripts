@@ -67,19 +67,9 @@ _colors() {
 
 _status() {
     case $1 in
-        0)
-            echo -e "[$text_green""Success""$text_reset]$text_green $2$text_reset"  | relog
-        ;;
-        1)
-            echo -e "[$text_red"" Error ""$text_reset] $text_error$2$text_reset" | relog
-        _notdone
-        ;;
-        2)
-            echo -e "[$text_yellow""Warning""$text_reset]$text_yellow $2$text_reset" | relog
-        ;;
-        3)
-            echo -e "[$text_cyan""Perform""$text_reset]$text_cyan $2$text_reset"  | relog
-        ;;
+        0) echo -e "[$text_green""Success""$text_reset]$text_green $2$text_reset"  | relog ;;
+        1) echo -e "[$text_red"" Error ""$text_reset] $text_error$2$text_reset" | relog ; _notdone ;;
+        2) echo -e "[$text_yellow""Warning""$text_reset]$text_yellow $2$text_reset" | relog ; ;;
     esac
 }
 
@@ -276,12 +266,8 @@ check_tools() {
         if ! command -v "${command}" &> /dev/null; then
             _query "${command} is required, press [y/N] to install..."
             case "$response" in
-                [yY][eE][sS]|[yY])
-                    sudo apt-get install "${command}"
-                ;;
-                *)
-                    _status 1 "${command} is required"
-                ;;
+                [yY][eE][sS]|[yY]) sudo apt-get install "${command}" ;;
+                *) _status 1 "${command} is required" ;;
             esac
         fi
     done
@@ -381,15 +367,9 @@ EOF
 vnstat_current() {
     vnstat_version="$( sudo dpkg-query -l | grep "vnstat" | tr -s " " | cut -d " " -f 3 )" || _status 1 "Failed to get vnStat version"
     case "${vnstat_version}" in
-        "" )
-            _status 3 "vnStat not installed..."
-        ;;
-        "2.6-3" | "1.18" )
-            _status 3 "vnStat ${vnstat_version} installed..."
-        ;;
-        "*" )
-            _status 2 "vnStat ${vnstat_version} not supported..."
-        ;;
+        "" ) _status 3 "vnStat not installed..." ;;
+        "2.6-3" | "1.18" ) _status 3 "vnStat ${vnstat_version} installed..." ;;
+        "*" ) _status 2 "vnStat ${vnstat_version} not supported..." ;;
     esac
 }
 
