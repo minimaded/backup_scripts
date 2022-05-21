@@ -147,6 +147,7 @@ log_file() {
     while read -r line; do
         case "${line}" in
             "Please wait *" | "Rebooting in *")
+                echo "test"
             ;;
             *)
                 echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${logfile_name}" > /dev/null || _status 1 "Failed to append log file"
