@@ -385,7 +385,7 @@ _reboot() {
     done
     echo > /dev/tty
     sed -i "0,/_reboot/s//#_reboot/" "/home/${user_name}/raspapreboot.sh" || _status 1  "Failed to comment reboot function done"
-    _status 3 "Rebooting"
+    _status 0 "Rebooting"
     sudo reboot
     exit 0
 }
