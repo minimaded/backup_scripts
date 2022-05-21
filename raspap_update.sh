@@ -20,12 +20,12 @@ do_all() {
     else
 	
 	
-echo "test2"	
+echo "test3"	
 	
 	
         echo -n "Download RaspAP update? [y/N] " > /dev/tty
         read -r response < /dev/tty
-        echo "${response}" > log_file
+        echo "Download RaspAP update? [y/N] ${response}" | relog | log_file
         case "${response}" in
             [yY][eE][sS]|[yY])
                 compress_oldfiles
@@ -33,7 +33,7 @@ echo "test2"
         esac
         echo -n "Continue update script? [y/N] " > /dev/tty
         read -r response < /dev/tty
-        echo "${response}" > log_file
+        echo "Continue update script? [y/N] ${response}" | relog | log_file
         case "${response}" in
             [yY][eE][sS]|[yY])
                 delete_oldfiles
@@ -42,7 +42,7 @@ echo "test2"
         esac
         echo -n "Reboot? [y/N] " > /dev/tty
         read -r response < /dev/tty
-        echo "${response}" > log_file
+        echo "Reboot?  [y/N] ${response}" | relog | log_file
         case "${response}" in
             [yY][eE][sS]|[yY])
                 raspap_reboot
@@ -129,7 +129,7 @@ _sleep() {
     total=$1
     _status 3 "Waiting ${total} seconds"
     while [ "${count}" -lt "${total}" ]; do
-        printf "\rPlease wait %ds  " $(( total - count ))
+        printf "\rPlease wait %ds  " $(( total - count )) > /dev/tty
         sleep 1
         (( ++count ))
     done
@@ -141,7 +141,7 @@ _reboot() {
     count=0
     total=$1
     while [ "${count}" -lt "${total}" ]; do
-        printf "\rRebooting in %ds  " $(( total - count ))
+        printf "\rRebooting in %ds  " $(( total - count )) > /dev/tty
         sleep 1
         (( ++count ))
     done
@@ -153,14 +153,7 @@ _reboot() {
 
 log_file() {
     while read -r line; do
-        case "${line}" in
-            "Please wait *" | "Rebooting in *")
-                echo "test"
-            ;;
-            *)
-                echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${logfile_name}" > /dev/null || _status 1 "Failed to append log file"
-            ;;
-        esac
+        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${logfile_name}" > /dev/null || _status 1 "Failed to append log file"
     done
 }
 
@@ -178,7 +171,7 @@ internet_check() {
            _status 0 "Connected to the internet"
             break
         else
-            _status 2 "Waiting for an internet connection..."
+            _status 2 "Waiting for an internet connection..." > /dev/tty
             sleep 1
         fi
         if [ "${i}" -gt 59 ] ; then
