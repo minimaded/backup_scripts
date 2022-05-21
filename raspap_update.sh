@@ -20,7 +20,7 @@ do_all() {
     else
 	
 	
-	
+echo "test"	
 	
 	
         echo -n "Download RaspAP update? [y/N] "
