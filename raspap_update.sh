@@ -139,7 +139,7 @@ _reboot() {
     done
     echo
     _status 0 "Rebooting"
-    sudo reboot
+    #sudo reboot
     exit 0
 }
 
