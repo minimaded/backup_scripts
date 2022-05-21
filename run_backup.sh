@@ -271,7 +271,7 @@ parse_params() {
 
 check_tools() {
     _status 3 "Checking for required tools"
-	echo "test 1"
+	echo "test 12"
     req_tools="parted losetup tune2fs md5sum e2fsck resize2fs"
     for command in $req_tools; do
 	echo "test 2"
