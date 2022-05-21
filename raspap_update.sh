@@ -18,11 +18,6 @@ do_all() {
         raspap_reboot
         _reboot 10
     else
-	
-	
-echo "test3"	
-	
-	
         echo -n "Download RaspAP update? [y/N] " > /dev/tty
         read -r response < /dev/tty
         echo "Download RaspAP update? [y/N] ${response}" | relog | log_file
@@ -133,7 +128,7 @@ _sleep() {
         sleep 1
         (( ++count ))
     done
-    echo
+    echo > /dev/tty
     _status 0 "Waited ${total} seconds, continuing..."
 }
 
@@ -145,7 +140,7 @@ _reboot() {
         sleep 1
         (( ++count ))
     done
-    echo
+    echo > /dev/tty
     _status 0 "Rebooting"
     #sudo reboot
     exit 0
@@ -368,13 +363,7 @@ _status () {
 
 log_file() {
     while read -r line; do
-        case "\${line}" in
-            "Please wait *" | "Rebooting in *")
-            ;;
-            *)
-               echo "\${line}" | sudo tee -a "${logfile_name}" > /dev/null || _status 1  "Failed to append log file"
-            ;;
-        esac
+        echo "\${line}" | sudo tee -a "${logfile_name}" > /dev/null || _status 1  "Failed to append log file"
     done
 }
 
@@ -389,11 +378,11 @@ _reboot() {
     count=0
     total=\$1
     while [ "\${count}" -lt "\${total}" ]; do
-        printf "\rRebooting in %ds  " \$(( total - count ))
+        printf "\rRebooting in %ds  " \$(( total - count )) > /dev/tty
         sleep 1
         (( ++count ))
     done
-    echo
+    echo > /dev/tty
     sed -i "0,/_reboot/s//#_reboot/" "/home/${user_name}/raspapreboot.sh" || _status 1  "Failed to comment reboot function done"
     _status 0 "Rebooting"
     sudo reboot
