@@ -29,7 +29,7 @@ _done() {
     fi
     echo
     echo -n "Press any key to exit..."
-    read -r -n1
+    read -r -n 1
     echo
     exit 0
 }
@@ -37,7 +37,7 @@ _done() {
 _notdone() {
     echo
     echo -n "${script_name} failed...Press any key to exit"
-    read -r -n1
+    read -r -n 1
     echo
     exit 1
 }
