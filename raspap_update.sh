@@ -18,26 +18,23 @@ do_all() {
         raspap_reboot
         _reboot 10
     else
-        echo -n "Download RaspAP update? [y/N] " > /dev/tty
-        read -r response < /dev/tty
-        echo "Download RaspAP update? [y/N] ${response}" | relog | log_file
+	
+	echo "test 5"
+	
+        _query "Download RaspAP update? [y/N] "
         case "${response}" in
             [yY][eE][sS]|[yY])
                 compress_oldfiles
                 update_raspap
         esac
-        echo -n "Continue update script? [y/N] " > /dev/tty
-        read -r response < /dev/tty
-        echo "Continue update script? [y/N] ${response}" | relog | log_file
+        _query "Continue update script? [y/N] "
         case "${response}" in
             [yY][eE][sS]|[yY])
                 delete_oldfiles
                 clear_vnstat
                 _status 0 "RaspAP update completed"
         esac
-        echo -n "Reboot? [y/N] " > /dev/tty
-        read -r response < /dev/tty
-        echo "Reboot?  [y/N] ${response}" | relog | log_file
+        _query "Reboot? [y/N] "
         case "${response}" in
             [yY][eE][sS]|[yY])
                 raspap_reboot
@@ -117,6 +114,13 @@ _status() {
             echo -e "[$text_cyan""Perform""$text_reset]$text_cyan $2$text_reset"  | relog
         ;;
     esac
+}
+
+_query() {
+    response=""
+    echo -n "${1}" > /dev/tty
+    read -r response < /dev/tty
+    echo "[ Query ] ${1} ${response}" | relog | log_file
 }
 
 _sleep() {
