@@ -90,11 +90,11 @@ _sleep() {
     total=$1
     _status 3 "Waiting ${total} seconds"
     while [ "${count}" -lt "${total}" ]; do
-        printf "\rPlease wait %ds  " $(( total - count ))
+        printf "\rPlease wait %ds  " $(( total - count )) > /dev/tty
         sleep 1
         (( ++count ))
     done
-    echo
+    echo > /dev/tty
     _status 0 "Waited ${total} seconds, continuing..."
 }
 
@@ -102,25 +102,19 @@ _reboot() {
     count=0
     total=$1
     while [ "${count}" -lt "${total}" ]; do
-        printf "\rRebooting in %ds  " $(( total - count ))
+        printf "\rRebooting in %ds  " $(( total - count )) > /dev/tty
         sleep 1
         (( ++count ))
     done
-    echo
-    _status 0 "Rebooting"
+    echo > /dev/tty
+    _status 3 "Rebooting"
     sudo reboot
     exit 0
 }
 
 log_file() {
     while read -r line; do
-        case "${line}" in
-            "Please wait *" | "Rebooting in *")
-            ;;
-            *)
-                echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log" > /dev/null || _status 1 "Failed to append log file"
-            ;;
-        esac
+        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log" > /dev/null || _status 1 "Failed to append log file"
     done
 }
 
@@ -138,7 +132,7 @@ internet_check() {
            _status 0 "Connected to the internet"
             break
         else
-            _status 2 "Waiting for an internet connection..."
+            _status 2 "Waiting for an internet connection..."  > /dev/tty
             sleep 1
         fi
         if [ "${i}" -gt 59 ] ; then

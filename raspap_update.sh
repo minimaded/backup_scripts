@@ -18,23 +18,20 @@ do_all() {
         raspap_reboot
         _reboot 10
     else
-	
-	echo "test 5"
-	
-        _query "Download RaspAP update? [y/N] "
+        _query "Download RaspAP update? [y/N]"
         case "${response}" in
             [yY][eE][sS]|[yY])
                 compress_oldfiles
                 update_raspap
         esac
-        _query "Continue update script? [y/N] "
+        _query "Continue update script? [y/N]"
         case "${response}" in
             [yY][eE][sS]|[yY])
                 delete_oldfiles
                 clear_vnstat
                 _status 0 "RaspAP update completed"
         esac
-        _query "Reboot? [y/N] "
+        _query "Reboot? [y/N]"
         case "${response}" in
             [yY][eE][sS]|[yY])
                 raspap_reboot
@@ -118,9 +115,9 @@ _status() {
 
 _query() {
     response=""
-    echo -n "${1}" > /dev/tty
+    echo -n "${1} " > /dev/tty
     read -r response < /dev/tty
-    echo "[ Query ] ${1} ${response}" | relog | log_file
+    echo "[ Query ] ${1}${response}" | relog | log_file
 }
 
 _sleep() {
@@ -145,8 +142,8 @@ _reboot() {
         (( ++count ))
     done
     echo > /dev/tty
-    _status 0 "Rebooting"
-    #sudo reboot
+    _status 3 "Rebooting"
+    sudo reboot
     exit 0
 }
 
@@ -388,7 +385,7 @@ _reboot() {
     done
     echo > /dev/tty
     sed -i "0,/_reboot/s//#_reboot/" "/home/${user_name}/raspapreboot.sh" || _status 1  "Failed to comment reboot function done"
-    _status 0 "Rebooting"
+    _status 3 "Rebooting"
     sudo reboot
     exit 0
 }
