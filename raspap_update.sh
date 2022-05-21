@@ -126,7 +126,7 @@ _sleep() {
         (( ++count ))
     done
     echo
-    _status 1 "Waited ${total} seconds, continuing..."
+    _status 0 "Waited ${total} seconds, continuing..."
 }
 
 _reboot() {
@@ -138,7 +138,7 @@ _reboot() {
         (( ++count ))
     done
     echo
-    _status 1 "Rebooting"
+    _status 0 "Rebooting"
     sudo reboot
     exit 0
 }
