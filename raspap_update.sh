@@ -18,7 +18,7 @@ do_all() {
         raspap_reboot
         _reboot 10
     else
-        echo -n "Download RaspAP update? [y/N] " | relog | log_file
+        echo -n "Download RaspAP update? [y/N] "
         read -r response < /dev/tty
         echo "${response}" | logfile
         case "${response}" in
