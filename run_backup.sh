@@ -21,15 +21,15 @@ do_all() {
 _done() {
     _status 0 "${script_name} done"
     warnings="$( echo "$( grep "\[Warning\]" "${backup_saveas}.log" )" )" || _status 1 "Failed to get warnings from log file"
-    echo
     if [ -n "${warnings}" ] ; then
+        echo
         echo "The following warnings occurred..."
         echo
         echo "${warnings}"
     fi
     echo
     echo -n "Press any key to exit..."
-    read -r -n 1
+    pause
     echo
     exit 0
 }
@@ -37,7 +37,7 @@ _done() {
 _notdone() {
     echo
     echo -n "${script_name} failed...Press any key to exit"
-    read -r -n 1
+    pause
     echo
     exit 1
 }
@@ -88,18 +88,14 @@ _status() {
 _sleep() {
     count=0
     total=$1
+    _status 3 "Waiting ${total} seconds"
     while [ "${count}" -lt "${total}" ]; do
         printf "\rPlease wait %ds  " $(( total - count ))
         sleep 1
-        count=$(( count + 1 ))
+        (( ++count ))
     done
     echo
-}
-
-log_file() {
-    while read -r line; do
-        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log" > /dev/null || _status 1 "Failed to append log file"
-    done
+    _status 0 "Waited ${total} seconds, continuing..."
 }
 
 _reboot() {
@@ -108,11 +104,28 @@ _reboot() {
     while [ "${count}" -lt "${total}" ]; do
         printf "\rRebooting in %ds  " $(( total - count ))
         sleep 1
-        count=$(( count + 1 ))
+        (( ++count ))
     done
     echo
+    _status 0 "Rebooting"
     sudo reboot
     exit 0
+}
+
+log_file() {
+    while read -r line; do
+        case "${line}" in
+            "Please wait *")
+                break
+            ;;
+            "Rebooting in *")
+                break
+            ;;
+            *)
+                echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log" > /dev/null || _status 1 "Failed to append log file"
+            ;;
+        esac
+    done
 }
 
 relog() {
@@ -269,13 +282,16 @@ check_tools() {
         if (( $? != 0 )); then
             echo
             echo -n "${command} is required, press \"y\" to install... "
-            read -p "" -n 1 -r
+            read -r response < /dev/tty
             echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
+            case "$response" in
+                [yY][eE][sS]|[yY])
                     sudo apt-get install "${command}"
-            else
+                ;;
+                *)
                     _status 1 "${command} is required"
-            fi
+                ;;
+            esac
         fi
     done
     _status 0 "All required tools installed"
