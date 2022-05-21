@@ -117,7 +117,7 @@ _query() {
     response=""
     echo -n "${1} " > /dev/tty
     read -r response < /dev/tty
-    echo "[ Query ] ${1}${response}" | relog | log_file
+    echo "[ Query ] ${1} ${response}" | relog | log_file
 }
 
 _sleep() {
