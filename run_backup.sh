@@ -275,7 +275,7 @@ check_tools() {
     req_tools="parted losetup tune2fs md5sum e2fsck resize2fs"
     for command in $req_tools; do
 	echo "test 2"
-        command -v "${command}" >/dev/null 2>&1
+        command -v "${command}"
 		echo "test 3"
         if (( $? != 0 )); then
 		echo "test 4"
