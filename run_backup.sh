@@ -271,18 +271,9 @@ parse_params() {
 
 check_tools() {
     _status 3 "Checking for required tools"
-	echo "test"
-	
-	
-	echo "testtest"
-	
-	echo "test 123"
     req_tools="parted losetup tune2fs md5sum e2fsck resize2fs"
-    for command in $req_tools; do
-	echo "test 2"
-		echo "test 3"
+    for command in "${req_tools}"; do
         if ! command -v "${command}" &> /dev/null; then
-		echo "test 4"
             _query "${command} is required, press [y/N] to install... "
             case "$response" in
                 [yY][eE][sS]|[yY])
