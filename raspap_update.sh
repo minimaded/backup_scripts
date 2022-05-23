@@ -1,8 +1,6 @@
 #!/bin/bash
 
-set -u
-
-set -eo pipefail
+set -eou pipefail
 
 user_name="$( sudo ls "/home" | tail -n 1 )"
 logfile_name="/home/${user_name}/Log Files/raspap_log.txt"
@@ -99,7 +97,8 @@ _status() {
     case $1 in
         0) echo -e "[$text_green""Success""$text_reset]$text_green $2$text_reset"  | relog ;;
         1) echo -e "[$text_red"" Error ""$text_reset] $text_error$2$text_reset" | relog ; _notdone ;;
-        2) echo -e "[$text_yellow""Warning""$text_reset]$text_yellow $2$text_reset" | relog ; ;;
+        2) echo -e "[$text_yellow""Warning""$text_reset]$text_yellow $2$text_reset" | relog ;;
+        3) echo -e "[$text_cyan""Perform""$text_reset]$text_cyan $2$text_reset"  | relog ;;
     esac
 }
 
