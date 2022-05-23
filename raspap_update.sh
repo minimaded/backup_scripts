@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -u
+
 set -eo pipefail
 
 user_name="$( sudo ls "/home" | tail -n 1 )"
@@ -50,21 +52,21 @@ _done() {
     _status 0 "${script_name} done"
     warnings="$( echo "$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1 "Failed to get warnings from log file"
     if [ -n "${warnings}" ] ; then
-        echo > /dev/tty
-        echo "The following warnings occurred..." > /dev/tty
-        echo > /dev/tty
-        echo "${warnings}" > /dev/tty
+        echo >/dev/tty
+        echo "The following warnings occurred..." >/dev/tty
+        echo >/dev/tty
+        echo "${warnings}" >/dev/tty
     fi
-    echo > /dev/tty
-    read -r -p "${script_name} completed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
-    echo > /dev/tty
+    echo >/dev/tty
+    read -r -p </dev/tty "${script_name} completed...Press any key to exit" -s -n1 >/dev/tty
+    echo >/dev/tty
     exit 0
 }
 
 _notdone() {
-    echo > /dev/tty
-    read -r -p "${script_name} failed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
-    echo > /dev/tty
+    echo >/dev/tty
+    read -r -p </dev/tty "${script_name} failed...Press any key to exit" -s -n1 >/dev/tty
+    echo >/dev/tty
     exit 1
 }
 
@@ -103,8 +105,8 @@ _status() {
 
 _query() {
     response=""
-    echo -n "${1} " > /dev/tty
-    read -r response < /dev/tty
+    echo -n "${1} " >/dev/tty
+    read -r response </dev/tty
     echo "[ Query ] ${1} ${response}" | relog | log_file
 }
 
@@ -113,11 +115,11 @@ _sleep() {
     total=$1
     _status 3 "Waiting ${total} seconds"
     while [ "${count}" -lt "${total}" ]; do
-        printf "\rPlease wait %ds  " $(( total - count )) > /dev/tty
+        printf "\rPlease wait %ds  " $(( total - count )) >/dev/tty
         sleep 1
         (( ++count ))
     done
-    echo > /dev/tty
+    echo >/dev/tty
     _status 0 "Waited ${total} seconds, continuing..."
 }
 
@@ -125,11 +127,11 @@ _reboot() {
     count=0
     total=$1
     while [ "${count}" -lt "${total}" ]; do
-        printf "\rRebooting in %ds  " $(( total - count )) > /dev/tty
+        printf "\rRebooting in %ds  " $(( total - count )) >/dev/tty
         sleep 1
         (( ++count ))
     done
-    echo > /dev/tty
+    echo >/dev/tty
     _status 3 "Rebooting"
     sudo reboot
     exit 0
@@ -137,7 +139,7 @@ _reboot() {
 
 log_file() {
     while read -r line; do
-        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${logfile_name}" > /dev/null || _status 1 "Failed to append log file"
+        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${logfile_name}" >/dev/null || _status 1 "Failed to append log file"
     done
 }
 
@@ -155,7 +157,7 @@ internet_check() {
            _status 0 "Connected to the internet"
             break
         else
-            _status 2 "Waiting for an internet connection..." > /dev/tty
+            _status 2 "Waiting for an internet connection..." >/dev/tty
             sleep 1
         fi
         if [ "${i}" -gt 59 ] ; then
@@ -213,9 +215,9 @@ compress_oldfiles() {
     _status 3 "Backing up old files"
     old_folders="$(find '/etc/' -maxdepth 1 -iname 'raspap*' -o -iname 'dnsmasq.d' -o -iname 'hostapd')"$'\n'"$(find '/etc/network/' -maxdepth 1 -iname 'interfaces.d')"$'\n'"$(find '/var/www/' -maxdepth 1 -iname 'html*')" || _status 1 "Failed to find old folders"
     for old_folder in $old_folders; do
-        sudo tar -rf "${backup_saveas}.tar" "${old_folder}" &> /dev/null || _status 1 "Failed to compress old folders"
+        sudo tar -rf "${backup_saveas}.tar" "${old_folder}" &>/dev/null || _status 1 "Failed to compress old folders"
     done
-    sudo tar -rf "${backup_saveas}.tar" "/etc/dhcpcd.conf" &> /dev/null || _status 1 "Failed to compress dhcpcd.conf"
+    sudo tar -rf "${backup_saveas}.tar" "/etc/dhcpcd.conf" &>/dev/null || _status 1 "Failed to compress dhcpcd.conf"
     _status 0 "Old files backed up"
 }
 
@@ -283,14 +285,14 @@ clear_vnstat() {
     vnstat_current || _status 1 "Failed to get current vnStat version"
     case "${vnstat_version}" in
         "1.18-2")
-            sudo rm /var/lib/vnstat/* || _status 1 "Failed to remove vnStat directory"
+            sudo rm "/var/lib/vnstat/*" || _status 1 "Failed to remove vnStat directory"
             sudo systemctl restart vnstat.service || _status 1 "Failed to restart vnStat service"
             sudo -u vnstat vnstat -i eth0 -u || _status 1 "Failed to add eth0 to vnStat"
             sudo -u vnstat vnstat -i wlan0 -u || _status 1 "Failed to add wlan0 to vnStat"
             sudo -u vnstat vnstat -i wlan1 -u || _status 1 "Failed to add wlan1 to vnStat"
         ;;
         "2.6-3")
-            sudo rm /var/lib/vnstat/* || _status 1 "Failed to remove vnStat directory"
+            sudo rm "/var/lib/vnstat/*" || _status 1 "Failed to remove vnStat directory"
             sudo systemctl restart vnstat.service || _status 1 "Failed to restart vnStat service"
         ;;
     esac
@@ -336,9 +338,9 @@ _status () {
         ;;
         1)
             echo -e  "[ Error ] ""\$2" | relog
-            echo > /dev/tty
-            read -r -p "Failed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
-            echo > /dev/tty
+            echo >/dev/tty
+            read -r -p </dev/tty "Failed...Press any key to exit" -s -n1 >/dev/tty
+            echo >/dev/tty
             exit 1
         ;;
     esac
@@ -346,7 +348,7 @@ _status () {
 
 log_file() {
     while read -r line; do
-        echo "\${line}" | sudo tee -a "${logfile_name}" > /dev/null || _status 1  "Failed to append log file"
+        echo "\${line}" | sudo tee -a "${logfile_name}" >/dev/null || _status 1  "Failed to append log file"
     done
 }
 
@@ -361,11 +363,11 @@ _reboot() {
     count=0
     total=\$1
     while [ "\${count}" -lt "\${total}" ]; do
-        printf "\rRebooting in %ds  " \$(( total - count )) > /dev/tty
+        printf "\rRebooting in %ds  " \$(( total - count )) >/dev/tty
         sleep 1
         (( ++count ))
     done
-    echo > /dev/tty
+    echo >/dev/tty
     sed -i "0,/_reboot/s//#_reboot/" "/home/${user_name}/raspapreboot.sh" || _status 1  "Failed to comment reboot function done"
     _status 0 "Rebooting"
     sudo reboot
@@ -376,16 +378,16 @@ echo_warnings() {
     _status 0 "RaspAP update done"
     warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1  "Failed to get warnings from log file"
     if [ -n "\${warnings}" ] ; then
-        echo > /dev/tty
-        echo "The following warnings occurred..." > /dev/tty
-        echo > /dev/tty
-        echo "\${warnings}" > /dev/tty
+        echo >/dev/tty
+        echo "The following warnings occurred..." >/dev/tty
+        echo >/dev/tty
+        echo "\${warnings}" >/dev/tty
     fi
     sudo rm -f "/home/${user_name}/raspapreboot.sh" || _status 1   "Failed to remove raspapreboot script"
     sudo rm -f "/home/${user_name}/.config/autostart/raspapreboot.desktop" || _status 1  "Failed to remove raspapreboot autostart file"
-    echo > /dev/tty
-    read -r -p "Completed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
-    echo > /dev/tty
+    echo >/dev/tty
+    read -r -p </dev/tty "Completed...Press any key to exit" -s -n1 >/dev/tty
+    echo >/dev/tty
     exit 0
 }
 
