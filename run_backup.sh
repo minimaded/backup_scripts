@@ -9,12 +9,12 @@ do_all() {
     internet_check
     check_tools
     clean_repository
-    #copy_system
-    #fresh_boot
-    #pi_shrink
-    #zero_free "p1"
-    #zero_free "p2"
-    #compress_zip
+    copy_system
+    fresh_boot
+    pi_shrink
+    zero_free "p1"
+    zero_free "p2"
+    compress_zip
     _done
 }
 
