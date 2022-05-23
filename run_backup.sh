@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -eou pipefail
 
 user_name="$( sudo ls "/home" | tail -n 1 )"
 script_name="Backup"
@@ -9,12 +9,12 @@ do_all() {
     internet_check
     check_tools
     clean_repository
-    copy_system
-    fresh_boot
-    pi_shrink
-    zero_free "p1"
-    zero_free "p2"
-    compress_zip
+    #copy_system
+    #fresh_boot
+    #pi_shrink
+    #zero_free "p1"
+    #zero_free "p2"
+    #compress_zip
     _done
 }
 
@@ -22,21 +22,21 @@ _done() {
     _status 0 "${script_name} done"
     warnings="$( echo "$( grep "\[Warning\]" "${backup_saveas}.log" )" )" || _status 1 "Failed to get warnings from log file"
     if [ -n "${warnings}" ] ; then
-        echo > /dev/tty
-        echo "The following warnings occurred..." > /dev/tty
-        echo > /dev/tty
-        echo "${warnings}" > /dev/tty
+        echo >/dev/tty
+        echo "The following warnings occurred..." >/dev/tty
+        echo >/dev/tty
+        echo "${warnings}" >/dev/tty
     fi
-    echo > /dev/tty
-    read -r -p "${script_name} completed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
-    echo > /dev/tty
+    echo >/dev/tty
+    read -r -p </dev/tty "${script_name} completed...Press any key to exit" -s -n1 >/dev/tty
+    echo >/dev/tty
     exit 0
 }
 
 _notdone() {
-    echo > /dev/tty
-    read -r -p "${script_name} failed...Press any key to exit" -s -n1 < /dev/tty > /dev/tty
-    echo > /dev/tty
+    echo >/dev/tty
+    read -r -p </dev/tty "${script_name} failed...Press any key to exit" -s -n1 >/dev/tty
+    echo >/dev/tty
     exit 1
 }
 
@@ -75,8 +75,8 @@ _status() {
 
 _query() {
     response=""
-    echo -n "${1} " > /dev/tty
-    read -r response < /dev/tty
+    echo -n "${1} " >/dev/tty
+    read -r response </dev/tty
     echo "[ Query ] ${1} ${response}" | relog | log_file
 }
 
@@ -85,11 +85,11 @@ _sleep() {
     total=$1
     _status 3 "Waiting ${total} seconds"
     while [ "${count}" -lt "${total}" ]; do
-        printf "\rPlease wait %ds  " $(( total - count )) > /dev/tty
+        printf "\rPlease wait %ds  " $(( total - count )) >/dev/tty
         sleep 1
         (( ++count ))
     done
-    echo > /dev/tty
+    echo >/dev/tty
     _status 0 "Waited ${total} seconds, continuing..."
 }
 
@@ -97,11 +97,11 @@ _reboot() {
     count=0
     total=$1
     while [ "${count}" -lt "${total}" ]; do
-        printf "\rRebooting in %ds  " $(( total - count )) > /dev/tty
+        printf "\rRebooting in %ds  " $(( total - count )) >/dev/tty
         sleep 1
         (( ++count ))
     done
-    echo > /dev/tty
+    echo >/dev/tty
     _status 3 "Rebooting"
     sudo reboot
     exit 0
@@ -109,7 +109,7 @@ _reboot() {
 
 log_file() {
     while read -r line; do
-        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log" > /dev/null || _status 1 "Failed to append log file"
+        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | sudo tee -a "${backup_saveas}.log" >/dev/null || _status 1 "Failed to append log file"
     done
 }
 
@@ -127,7 +127,7 @@ internet_check() {
            _status 0 "Connected to the internet"
             break
         else
-            _status 2 "Waiting for an internet connection..."  > /dev/tty
+            _status 2 "Waiting for an internet connection..."  >/dev/tty
             sleep 1
         fi
         if [ "${i}" -gt 59 ] ; then
@@ -137,9 +137,11 @@ internet_check() {
 }
 
 parse_params() {
+    backup_source=""
     backup_destination=""
     backup_name=""
     backup_saveas=""
+    do_repoclean=""
     do_freshboot=""
     do_shrink=""
     PARAMS=""
@@ -263,7 +265,7 @@ check_tools() {
     _status 3 "Checking for required tools"
     req_tools="parted losetup tune2fs md5sum e2fsck resize2fs"
     for command in $req_tools; do
-        if ! command -v "${command}" &> /dev/null; then
+        if ! command -v "${command}" &>/dev/null; then
             _query "${command} is required, press [y/N] to install..."
             case "$response" in
                 [yY][eE][sS]|[yY]) sudo apt-get install "${command}" ;;
@@ -309,7 +311,7 @@ fresh_boot() {
             cat << EOF | sudo tee -a "${mnt_dir}/freshboot.sh" >/dev/null || _status 1 "Failed to add vnStat 1.18-2 fresh boot commands"
 #!/bin/bash
 
-sudo rm /var/lib/vnstat/*
+sudo rm "/var/lib/vnstat/"*
 sudo systemctl restart vnstat.service
 sudo -u vnstat vnstat -i eth0 -u
 sudo -u vnstat vnstat -i wlan0 -u
@@ -327,7 +329,7 @@ EOF
             cat << EOF | sudo tee -a "${mnt_dir}/freshboot.sh" >/dev/null || _status 1 "Failed to add vnStat 2.6-3 fresh boot commands"
 #!/bin/bash
 
-sudo rm /var/lib/vnstat/*
+sudo rm "/var/lib/vnstat/"*
 sudo systemctl restart vnstat.service
 sed -i 's| systemd.run=/boot/freshboot.sh||g' /boot/cmdline.txt
 sed -i 's| systemd.run_success_action=reboot||g' /boot/cmdline.txt
@@ -376,7 +378,7 @@ vnstat_current() {
 pi_shrink() {
     [[ "${do_shrink}" != "shrink" ]] && return
     _status 3 "Downloading PiShrink script"
-    wget -qO - "https://raw.githubusercontent.com/minimaded/backup_scripts/main/pishrink.sh" > "/tmp/pishrink.sh" || _status 1 "Failed to get PiShrink script"
+    wget -qO - "https://raw.githubusercontent.com/minimaded/backup_scripts/main/pishrink.sh" >"/tmp/pishrink.sh" || _status 1 "Failed to get PiShrink script"
     sudo chmod +x "/tmp/pishrink.sh"
     _status 3 "Shrinking system copy with PiShrink"
     sudo "/tmp/pishrink.sh" "-s${rm_logs}" "${backup_saveas}.img" || _status 1 "Failed to shrink system copy with PiShrink"
