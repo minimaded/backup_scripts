@@ -67,10 +67,10 @@ _colors() {
 
 _status() {
     case $1 in
-        0) echo -e "[$text_green""Success""$text_reset]$text_green $2$text_reset"  | relog ;;
+        0) echo -e "[$text_green""Success""$text_reset]$text_green $2$text_reset" | relog ;;
         1) echo -e "[$text_red"" Error ""$text_reset] $text_error$2$text_reset" | relog ; _notdone ;;
         2) echo -e "[$text_yellow""Warning""$text_reset]$text_yellow $2$text_reset" | relog ;;
-        3) echo -e "[$text_cyan""Perform""$text_reset]$text_cyan $2$text_reset"  | relog ;;
+        3) echo -e "[$text_cyan""Perform""$text_reset]$text_cyan $2$text_reset" | relog ;;
     esac
 }
 
@@ -128,7 +128,7 @@ internet_check() {
            _status 0 "Connected to the internet"
             break
         else
-            _status 2 "Waiting for an internet connection..."  >/dev/tty
+            _status 2 "Waiting for an internet connection..." >/dev/tty
             sleep 1
         fi
         if [ "${i}" -gt 59 ] ; then
