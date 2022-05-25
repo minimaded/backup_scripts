@@ -108,9 +108,16 @@ _reboot() {
     exit 0
 }
 
+console_log() {
+    tee /dev/tty | log_file
+}
+
 log_file() {
+    rm_colors() { sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' }
+    rm_nonascii() { tr -cd '\11\12\15\40-\176' }
+    append_log() { sudo tee -a "${backup_saveas}.log" >/dev/null }
     while read -r line; do
-        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | tr -cd '\11\12\15\40-\176' | sudo tee -a "${backup_saveas}.log" >/dev/null || _status 1 "Failed to append log file"
+        echo "${line}" | rm_colors | rm_nonascii | append_log || _status 1 "Failed to append log file"
     done
 }
 
@@ -436,5 +443,6 @@ compress_zip() {
 _colors
 script_path="$( readlink -f "$0" )"
 parse_params "$@"
-_status 0 "Username is ${user_name}" | tee /dev/tty | log_file
-do_all | tee /dev/tty | log_file
+_status 0 "Username is ${user_name}" | console_log
+echo "test"
+do_all | console_log
