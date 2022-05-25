@@ -113,9 +113,9 @@ console_log() {
 }
 
 log_file() {
-    rm_colors() { sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' }
-    rm_nonascii() { tr -cd '\11\12\15\40-\176' }
-    append_log() { sudo tee -a "${backup_saveas}.log" >/dev/null }
+    rm_colors() { sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' ; }
+    rm_nonascii() { tr -cd '\11\12\15\40-\176' ; }
+    append_log() { sudo tee -a "${backup_saveas}.log" >/dev/null ; }
     while read -r line; do
         echo "${line}" | rm_colors | rm_nonascii | append_log || _status 1 "Failed to append log file"
     done
