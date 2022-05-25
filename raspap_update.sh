@@ -70,7 +70,7 @@ _notdone() {
 
 _colours() {
     if [[ -t 1 ]]; then
-        ncolours="$(tput colours)"
+        ncolours="$(tput colors)"
         if [[ -n "${ncolours}" && "${ncolours}" -ge 8 ]]; then
             text_red="$(tput setaf 1)"
             text_green="$(tput setaf 2)"
