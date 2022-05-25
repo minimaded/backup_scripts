@@ -3,7 +3,7 @@
 set -eou pipefail
 
 user_name="$( sudo ls "/home" | tail -n 1 )"
-logfile_name="/home/${user_name}/Log Files/raspap_log.txt"
+logfile_saveas="/home/${user_name}/Log Files/raspap_log.txt"
 script_name="RaspAP update"
 
 do_all() {
@@ -48,7 +48,7 @@ comment_done() {
 
 _done() {
     _status 0 "${script_name} done"
-    warnings="$( echo "$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1 "Failed to get warnings from log file"
+    warnings="$( echo "$( grep "\[Warning\]" "${logfile_saveas}" )" )" || _status 1 "Failed to get warnings from log file"
     if [ -n "${warnings}" ] ; then
         echo >/dev/tty
         echo "The following warnings occurred..." >/dev/tty
@@ -68,10 +68,10 @@ _notdone() {
     exit 1
 }
 
-_colors() {
+_colours() {
     if [[ -t 1 ]]; then
-        ncolors="$(tput colors)"
-        if [[ -n "${ncolors}" && "${ncolors}" -ge 8 ]]; then
+        ncolours="$(tput colours)"
+        if [[ -n "${ncolours}" && "${ncolours}" -ge 8 ]]; then
             text_red="$(tput setaf 1)"
             text_green="$(tput setaf 2)"
             text_yellow="$(tput setaf 3)"
@@ -136,9 +136,16 @@ _reboot() {
     exit 0
 }
 
+console_log() {
+    tee /dev/tty | log_file
+}
+
 log_file() {
+    rm_colours() { sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' ; }
+    rm_nonascii() { tr -cd '\11\12\15\40-\176' ; }
+    append_log() { sudo tee -a "${logfile_saveas}" >/dev/null ; }
     while read -r line; do
-        echo "${line}" | sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' | tr -cd '\11\12\15\40-\176' | sudo tee -a "${logfile_name}" >/dev/null || _status 1 "Failed to append log file"
+        echo "${line}" | rm_colours | rm_nonascii | append_log || _status 1 "Failed to append log file"
     done
 }
 
@@ -203,10 +210,10 @@ parse_params() {
             ;;
         esac
     done
-    _status 0 "Parameters parsed" | tee /dev/tty | log_file
+    _status 0 "Parameters parsed" | console_log
     if [ -n "${backup_destination}" ]; then
         backup_saveas="${backup_destination}/RaspAP Backups/RaspAP-$(date '+%Y-%m-%d-%H%M%S')"
-        _status 3 "Saving RaspAP backup to ${backup_saveas}" | tee /dev/tty | log_file
+        _status 3 "Saving RaspAP backup to ${backup_saveas}" | console_log
     fi
 }
 
@@ -346,9 +353,16 @@ _status () {
     esac
 }
 
+console_log() {
+    tee /dev/tty | log_file
+}
+
 log_file() {
+    rm_colours() { sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' ; }
+    rm_nonascii() { tr -cd '\11\12\15\40-\176' ; }
+    append_log() { sudo tee -a "${logfile_saveas}" >/dev/null ; }
     while read -r line; do
-        echo "\${line}" | sudo tee -a "${logfile_name}" >/dev/null || _status 1  "Failed to append log file"
+        echo "\${line}" | rm_colours | rm_nonascii | append_log || _status 1 "Failed to append log file"
     done
 }
 
@@ -376,7 +390,7 @@ _reboot() {
 
 echo_warnings() {
     _status 0 "RaspAP update done"
-    warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_name}" )" )" || _status 1  "Failed to get warnings from log file"
+    warnings="\$( echo "\$( grep "\[Warning\]" "${logfile_saveas}" )" )" || _status 1  "Failed to get warnings from log file"
     if [ -n "\${warnings}" ] ; then
         echo >/dev/tty
         echo "The following warnings occurred..." >/dev/tty
@@ -391,14 +405,14 @@ echo_warnings() {
     exit 0
 }
 
-do_all | tee /dev/tty | log_file
+do_all | console_log
 EOF
 
     sudo chmod +x "/home/${user_name}/raspapreboot.sh" || _status 1 "Failed to make reboot script executable"
 }
 
-_colors
+_colours
 script_path="$( readlink -f "$0" )"
 parse_params "$@"
-_status 0 "Username is ${user_name}" | tee /dev/tty | log_file
-do_all | tee /dev/tty | log_file
+_status 0 "Username is ${user_name}" | console_log
+do_all | console_log

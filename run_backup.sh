@@ -20,7 +20,7 @@ do_all() {
 
 _done() {
     _status 0 "${script_name} done"
-    warnings="$( echo "$( grep "\[Warning\]" "${backup_saveas}.log" )" )" || _status 1 "Failed to get warnings from log file"
+    warnings="$( echo "$( grep "\[Warning\]" "${logfile_saveas}" )" )" || _status 1 "Failed to get warnings from log file"
     if [ -n "${warnings}" ] ; then
         echo >/dev/tty
         echo "The following warnings occurred..." >/dev/tty
@@ -40,10 +40,10 @@ _notdone() {
     exit 1
 }
 
-_colors() {
+_colours() {
     if [[ -t 1 ]]; then
-        ncolors="$(tput colors)"
-        if [[ -n "${ncolors}" && "${ncolors}" -ge 8 ]]; then
+        ncolours="$(tput colours)"
+        if [[ -n "${ncolours}" && "${ncolours}" -ge 8 ]]; then
             text_red="$(tput setaf 1)"
             text_green="$(tput setaf 2)"
             text_yellow="$(tput setaf 3)"
@@ -78,7 +78,7 @@ _query() {
     response=""
     echo -n "${1} " >/dev/tty
     read -r response </dev/tty
-    echo "[ Query ] ${1} ${response}" | relog | log_file
+    echo "[ Query ] ${1} ${response}" | console_log
 }
 
 _sleep() {
@@ -113,11 +113,11 @@ console_log() {
 }
 
 log_file() {
-    rm_colors() { sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' ; }
+    rm_colours() { sed 's/\x1b\[[0-9;]*m\|\x1b[(]B\x1b\[m//g' ; }
     rm_nonascii() { tr -cd '\11\12\15\40-\176' ; }
-    append_log() { sudo tee -a "${backup_saveas}.log" >/dev/null ; }
+    append_log() { sudo tee -a "${logfile_saveas}" >/dev/null ; }
     while read -r line; do
-        echo "${line}" | rm_colors | rm_nonascii | append_log || _status 1 "Failed to append log file"
+        echo "${line}" | rm_colours | rm_nonascii | append_log || _status 1 "Failed to append log file"
     done
 }
 
@@ -149,6 +149,7 @@ parse_params() {
     backup_destination=""
     backup_name=""
     backup_saveas=""
+    logfile_saveas=""
     do_repoclean=""
     do_freshboot=""
     do_shrink=""
@@ -259,14 +260,15 @@ parse_params() {
     fi
     if [ -n "${backup_destination}" ] && [ -n "${backup_name}" ]; then
         backup_saveas="${backup_destination}/BackUp/${backup_name}-$(date '+%Y-%m-%d-%H%M%S')"
+        logfile_saveas="${backup_saveas}.log"
     elif [ -z "${backup_destination}" ]; then
         _status 1 "No backup destination supplied"
     elif [ -z "${backup_name}" ]; then
         _status 1 "No backup name supplied"
     fi
-    _status 0 "Parameters parsed" | tee /dev/tty | log_file
-    _status 3 "Using /dev/${backup_source} as backup source" | tee /dev/tty | log_file
-    _status 3 "Saving backup to ${backup_saveas}" | tee /dev/tty | log_file
+    _status 0 "Parameters parsed" | console_log
+    _status 3 "Using /dev/${backup_source} as backup source" | console_log
+    _status 3 "Saving backup to ${backup_saveas}" | console_log
 }
 
 check_tools() {
@@ -440,9 +442,9 @@ compress_zip() {
     _status 0 "Backup compressed - $( echo "${gzip_result}" | awk -F  ":\t" '/1/ {print $2}' | awk '{print $5 " " $1}' ) ${compressed_size}"
 }
 
-_colors
+_colours
 script_path="$( readlink -f "$0" )"
 parse_params "$@"
 _status 0 "Username is ${user_name}" | console_log
-echo "test"
+echo "test2"
 do_all | console_log
