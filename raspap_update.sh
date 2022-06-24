@@ -241,6 +241,8 @@ update_raspap() {
     ( sudo cp "/tmp/raspap_files/090_wlan0.conf" "/etc/dnsmasq.d/" && sudo chown root:root "/etc/dnsmasq.d/090_wlan0.conf" ) || _status 1 "Failed to copy 090_wlan0.conf"
     ( sudo cp "/tmp/raspap_files/090_wlan1.conf" "/etc/dnsmasq.d/" && sudo chown root:root "/etc/dnsmasq.d/090_wlan1.conf" ) || _status 1 "Failed to copy 090_wlan1.conf"
 
+    ( sudo cp "/tmp/raspap_files/50-raspap-router.conf" "/etc/lighttpd/conf-available/" && sudo chown root:root "/etc/lighttpd/conf-available/50-raspap-router.conf" ) || _status 1 "Failed to copy 50-raspap-router.conf"
+
     ( sudo cp "/tmp/raspap_files/hostapd.conf" "/etc/hostapd/" && sudo chown root:root "/etc/hostapd/hostapd.conf" ) || _status 1 "Failed to copy hostapd.conf"
     ( sudo cp "/tmp/raspap_files/wlan0.conf" "/etc/hostapd/" && sudo chown root:root "/etc/hostapd/wlan0.conf" ) || _status 1 "Failed to copy wlan0.conf"
     ( sudo cp "/tmp/raspap_files/wlan1.conf" "/etc/hostapd/" && sudo chown root:root "/etc/hostapd/wlan1.conf" ) || _status 1 "Failed to copy wlan1.conf"
